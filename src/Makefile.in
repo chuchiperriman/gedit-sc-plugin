@@ -57,8 +57,9 @@ am__installdirs = "$(DESTDIR)$(plugindir)" "$(DESTDIR)$(gladedir)" \
 pluginLTLIBRARIES_INSTALL = $(INSTALL)
 LTLIBRARIES = $(plugin_LTLIBRARIES)
 libsourcecompletion_la_LIBADD =
-am_libsourcecompletion_la_OBJECTS = csymbols-provider.lo \
-	csymbols-proposal.lo sourcecompletion-plugin.lo
+am_libsourcecompletion_la_OBJECTS = gsc-provider-csymbols.lo \
+	gsc-proposal-csymbol.lo gsc-trigger-symbols.lo \
+	sourcecompletion-plugin.lo
 libsourcecompletion_la_OBJECTS = $(am_libsourcecompletion_la_OBJECTS)
 libsourcecompletion_la_LINK = $(LIBTOOL) --tag=CC $(AM_LIBTOOLFLAGS) \
 	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
@@ -260,10 +261,12 @@ INCLUDES = \
 
 plugin_LTLIBRARIES = libsourcecompletion.la
 libsourcecompletion_la_SOURCES = \
-	csymbols-provider.h		\
-	csymbols-provider.c		\
-	csymbols-proposal.h		\
-	csymbols-proposal.c		\
+	gsc-provider-csymbols.h		\
+	gsc-provider-csymbols.c		\
+	gsc-proposal-csymbol.h		\
+	gsc-proposal-csymbol.c		\
+	gsc-trigger-symbols.h		\
+	gsc-trigger-symbols.c		\
 	sourcecompletion-plugin.h	\
 	sourcecompletion-plugin.c
 
@@ -346,8 +349,9 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/csymbols-proposal.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/csymbols-provider.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gsc-proposal-csymbol.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gsc-provider-csymbols.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gsc-trigger-symbols.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/sourcecompletion-plugin.Plo@am__quote@
 
 .c.o:

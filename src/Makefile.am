@@ -12,10 +12,12 @@ INCLUDES = \
 plugin_LTLIBRARIES = libsourcecompletion.la
 
 libsourcecompletion_la_SOURCES = \
-	csymbols-provider.h		\
-	csymbols-provider.c		\
-	csymbols-proposal.h		\
-	csymbols-proposal.c		\
+	gsc-provider-csymbols.h		\
+	gsc-provider-csymbols.c		\
+	gsc-proposal-csymbol.h		\
+	gsc-proposal-csymbol.c		\
+	gsc-trigger-symbols.h		\
+	gsc-trigger-symbols.c		\
 	sourcecompletion-plugin.h	\
 	sourcecompletion-plugin.c
 

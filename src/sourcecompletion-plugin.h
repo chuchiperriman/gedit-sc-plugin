@@ -1,5 +1,5 @@
 /*
- * docwordscompletion-plugin.h - Adds (auto)completion support to gedit
+ * sourcecompletion-plugin.h - Adds (auto)completion support to gedit
  *
  * Copyright (C) 2007 - chuchiperriman
  *
@@ -18,8 +18,8 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef __DOCWORDSCOMPLETION_PLUGIN_H__
-#define __DOCWORDSCOMPLETION_PLUGIN_H__
+#ifndef __SOURCECOMPLETION_PLUGIN_H__
+#define __SOURCECOMPLETION_PLUGIN_H__
 
 #include <glib.h>
 #include <glib-object.h>
@@ -30,35 +30,35 @@ G_BEGIN_DECLS
 /*
  * Type checking and casting macros
  */
-#define TYPE_DOCWORDSCOMPLETION_PLUGIN		(docwordscompletion_plugin_get_type ())
-#define DOCWORDSCOMPLETION_PLUGIN(o)		(G_TYPE_CHECK_INSTANCE_CAST ((o), TYPE_DOCWORDSCOMPLETION_PLUGIN, DocwordscompletionPlugin))
-#define DOCWORDSCOMPLETION_PLUGIN_CLASS(k)	(G_TYPE_CHECK_CLASS_CAST((k), TYPE_DOCWORDSCOMPLETION_PLUGIN, DocwordscompletionPluginClass))
-#define IS_DOCWORDSCOMPLETION_PLUGIN(o)	(G_TYPE_CHECK_INSTANCE_TYPE ((o), TYPE_DOCWORDSCOMPLETION_PLUGIN))
-#define IS_DOCWORDSCOMPLETION_PLUGIN_CLASS(k)	(G_TYPE_CHECK_CLASS_TYPE ((k), TYPE_DOCWORDSCOMPLETION_PLUGIN))
-#define DOCWORDSCOMPLETION_GET_CLASS(o)	(G_TYPE_INSTANCE_GET_CLASS ((o), TYPE_DOCWORDSCOMPLETION_PLUGIN, DocwordscompletionPluginClass))
+#define TYPE_SOURCECOMPLETION_PLUGIN		(sourcecompletion_plugin_get_type ())
+#define SOURCECOMPLETION_PLUGIN(o)		(G_TYPE_CHECK_INSTANCE_CAST ((o), TYPE_SOURCECOMPLETION_PLUGIN, SourcecompletionPlugin))
+#define SOURCECOMPLETION_PLUGIN_CLASS(k)	(G_TYPE_CHECK_CLASS_CAST((k), TYPE_SOURCECOMPLETION_PLUGIN, SourcecompletionPluginClass))
+#define IS_SOURCECOMPLETION_PLUGIN(o)	(G_TYPE_CHECK_INSTANCE_TYPE ((o), TYPE_SOURCECOMPLETION_PLUGIN))
+#define IS_SOURCECOMPLETION_PLUGIN_CLASS(k)	(G_TYPE_CHECK_CLASS_TYPE ((k), TYPE_SOURCECOMPLETION_PLUGIN))
+#define SOURCECOMPLETION_GET_CLASS(o)	(G_TYPE_INSTANCE_GET_CLASS ((o), TYPE_SOURCECOMPLETION_PLUGIN, SourcecompletionPluginClass))
 
 /* Private structure type */
-typedef struct _DocwordscompletionPluginPrivate	DocwordscompletionPluginPrivate;
+typedef struct _SourcecompletionPluginPrivate	SourcecompletionPluginPrivate;
 
 /*
  * Main object structure
  */
-typedef struct _DocwordscompletionPlugin		DocwordscompletionPlugin;
+typedef struct _SourcecompletionPlugin		SourcecompletionPlugin;
 
-struct _DocwordscompletionPlugin
+struct _SourcecompletionPlugin
 {
 	GeditPlugin parent_instance;
 
 	/*< private >*/
-	DocwordscompletionPluginPrivate *priv;
+	SourcecompletionPluginPrivate *priv;
 };
 
 /*
  * Class definition
  */
-typedef struct _DocwordscompletionPluginClass	DocwordscompletionPluginClass;
+typedef struct _SourcecompletionPluginClass	SourcecompletionPluginClass;
 
-struct _DocwordscompletionPluginClass
+struct _SourcecompletionPluginClass
 {
 	GeditPluginClass parent_class;
 };
@@ -66,11 +66,11 @@ struct _DocwordscompletionPluginClass
 /*
  * Public methods
  */
-GType	docwordscompletion_plugin_get_type	(void) G_GNUC_CONST;
+GType	sourcecompletion_plugin_get_type	(void) G_GNUC_CONST;
 
 /* All the plugins must implement this function */
 G_MODULE_EXPORT GType register_gedit_plugin (GTypeModule *module);
 
 G_END_DECLS
 
-#endif /* __DOCWORDSCOMPLETION_PLUGIN_H__ */
+#endif /* __SOURCECOMPLETION_PLUGIN_H__ */
