@@ -20,10 +20,13 @@
 #include <glib/gprintf.h>
 #include <string.h>
 #include <ctype.h>
+#include <gtksourcecompletion/gsc-utils.h>
+
 #include "gsc-trigger-symbols.h"
 
 struct _GscTriggerSymbolsPrivate {
 	GscManager *manager;
+	gint init_offset;
 };
 
 #define GSC_TRIGGER_SYMBOLS_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), GSC_TYPE_TRIGGER_SYMBOLS, GscTriggerSymbolsPrivate))
@@ -74,6 +77,7 @@ static void gsc_trigger_symbols_set_property (GObject * object, guint property_i
 static void gsc_trigger_symbols_init (GscTriggerSymbols * self)
 {
 	self->priv = g_new0(GscTriggerSymbolsPrivate, 1);
+	self->priv->init_offset = -1;
 	g_debug("Init Symbols trigger");
 }
 
@@ -131,34 +135,51 @@ insert_text_cb (GtkTextBuffer *textbuffer,
 {
 	g_return_if_fail (GSC_IS_TRIGGER_SYMBOLS (user_data));
 	
+	gint current_line;
+	gchar *filter, *temp;
+	GtkTextIter iter = *location;
+	
+	
 	GscTriggerSymbols *self = GSC_TRIGGER_SYMBOLS (user_data);
 	
 	/*FIXME Configure these symbols*/
 	if (g_strcmp0 (text, ".") == 0)
 	{
+		self->priv->init_offset = gtk_text_iter_get_line_offset (location);
 		gsc_manager_trigger_event (self->priv->manager,
 					   GSC_TRIGGER_SYMBOLS_NAME);
-		g_debug ("members completion");
-	}
-	else if (g_strcmp0 (text, "(") == 0)
-	{
-		g_debug ("show function calltip");
-	}
-	else if (g_strcmp0 (text, "{") == 0)
-	{
-		gsc_manager_trigger_event (self->priv->manager,
-					   GSC_TRIGGER_SYMBOLS_NAME);
-		g_debug ("actions completion");
 	}
 	else
 	{
 		if (gsc_manager_is_visible (self->priv->manager) && 
 		    gsc_manager_get_active_trigger(self->priv->manager) == GSC_TRIGGER (self))
 		{
-			/*Filter the current proposals */
-			gsc_manager_filter_current_proposals (self->priv->manager,
-							      symbols_filter_func,
-							      "Gsc");
+			if (gsc_char_is_separator (g_utf8_get_char (text)) ||
+			    gtk_text_iter_get_line_offset (location) < self->priv->init_offset)
+			{
+				gsc_manager_finish_completion (self->priv->manager);
+			}
+			else
+			{
+				GtkTextView *view = gsc_manager_get_view (self->priv->manager);
+				GtkTextBuffer *buffer = gtk_text_view_get_buffer (view);
+				/*Filter the current proposals */
+				while (gtk_text_iter_get_line_offset (&iter) > self->priv->init_offset + 1)
+				{
+					gtk_text_iter_backward_char (&iter);
+				}
+				
+				temp = gtk_text_buffer_get_text (buffer,
+								   &iter,
+								   location,
+								   FALSE);
+				filter = g_strconcat (temp, text, NULL);
+				g_free (temp);
+				gsc_manager_filter_current_proposals (self->priv->manager,
+								      symbols_filter_func,
+								      filter);
+				g_free (filter);
+			}
 		}
 	}
 }
