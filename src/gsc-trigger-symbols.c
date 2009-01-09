@@ -23,7 +23,7 @@
 #include "gsc-trigger-symbols.h"
 
 struct _GscTriggerSymbolsPrivate {
-	GscManager *completion;
+	GscManager *manager;
 };
 
 #define GSC_TRIGGER_SYMBOLS_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), GSC_TYPE_TRIGGER_SYMBOLS, GscTriggerSymbolsPrivate))
@@ -40,7 +40,7 @@ static gpointer gsc_trigger_symbols_parent_class = NULL;
 static GscTriggerIface* gsc_trigger_symbols_parent_iface = NULL;
 
 
-static const gchar* gsc_trigger_symbols_real_get_name(GscTrigger *self)
+static const gchar* gsc_trigger_symbols_real_get_name(GscTrigger *base)
 {
 	return GSC_TRIGGER_SYMBOLS_NAME;
 }
@@ -113,6 +113,56 @@ GType gsc_trigger_symbols_get_type ()
 	return g_define_type_id;
 }
 
+static gboolean
+symbols_filter_func (GscProposal *proposal,
+	     gpointer user_data)
+{
+	const gchar *label = gsc_proposal_get_label (proposal);
+	const gchar *text = (const gchar*)user_data;
+	return g_str_has_prefix (label, text);
+}
+
+static void
+insert_text_cb (GtkTextBuffer *textbuffer,
+		GtkTextIter   *location,
+		gchar         *text,
+		gint           len,
+		gpointer       user_data)
+{
+	g_return_if_fail (GSC_IS_TRIGGER_SYMBOLS (user_data));
+	
+	GscTriggerSymbols *self = GSC_TRIGGER_SYMBOLS (user_data);
+	
+	/*FIXME Configure these symbols*/
+	if (g_strcmp0 (text, ".") == 0)
+	{
+		gsc_manager_trigger_event (self->priv->manager,
+					   GSC_TRIGGER_SYMBOLS_NAME);
+		g_debug ("members completion");
+	}
+	else if (g_strcmp0 (text, "(") == 0)
+	{
+		g_debug ("show function calltip");
+	}
+	else if (g_strcmp0 (text, "{") == 0)
+	{
+		gsc_manager_trigger_event (self->priv->manager,
+					   GSC_TRIGGER_SYMBOLS_NAME);
+		g_debug ("actions completion");
+	}
+	else
+	{
+		if (gsc_manager_is_visible (self->priv->manager) && 
+		    gsc_manager_get_active_trigger(self->priv->manager) == GSC_TRIGGER (self))
+		{
+			/*Filter the current proposals */
+			gsc_manager_filter_current_proposals (self->priv->manager,
+							      symbols_filter_func,
+							      "Gsc");
+		}
+	}
+}
+
 /**
  * gsc_trigger_symbols_new:
  *
@@ -120,10 +170,14 @@ GType gsc_trigger_symbols_get_type ()
  *
  */
 GscTriggerSymbols*
-gsc_trigger_symbols_new(GscManager *completion)
+gsc_trigger_symbols_new(GscManager *manager)
 {
 	GscTriggerSymbols *self = GSC_TRIGGER_SYMBOLS (g_object_new (GSC_TYPE_TRIGGER_SYMBOLS, NULL));
-	self->priv->completion = completion;
+	self->priv->manager = manager;
+	GtkTextView *view = gsc_manager_get_view (manager);
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer (view);
+	/*FIXME disconnect on destroy*/
+	g_signal_connect(buffer,"insert-text",G_CALLBACK(insert_text_cb), self);
 	return self;
 }
 

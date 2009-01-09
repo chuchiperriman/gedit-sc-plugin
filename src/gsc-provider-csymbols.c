@@ -47,9 +47,30 @@ gsc_provider_csymbols_real_get_name (GscProvider* self)
 
 static GList* 
 gsc_provider_csymbols_real_get_proposals (GscProvider* base,
-						GscTrigger *trigger)
+					  GscTrigger *trigger)
 {
-	return NULL;
+	GList *list = NULL;
+	GscProposal *prop;
+	
+	prop = gsc_proposal_new("GscTrigger",
+				"GscTrigger (Object which raise an event)",
+				NULL);
+	gsc_proposal_set_page_name (prop, "Symbols");
+	list = g_list_append (list, prop);
+	
+	prop = gsc_proposal_new("GscProvider",
+				"GscProvider (Object which provides proposals)",
+				NULL);
+	gsc_proposal_set_page_name (prop, "Symbols");
+	list = g_list_append (list, prop);
+	
+	prop = gsc_proposal_new("GtkWidget",
+				"Base object for Gtk widgets",
+				NULL);
+	gsc_proposal_set_page_name (prop, "Symbols");
+	list = g_list_append (list, prop);
+	
+	return list;
 }
 
 static void 

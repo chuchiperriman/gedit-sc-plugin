@@ -32,6 +32,7 @@
 #include <gtksourcecompletion/gsc-trigger-customkey.h>
 #include <gtksourcecompletion/gsc-trigger-autowords.h>
 
+#include "gsc-trigger-symbols.h"
 #include "gsc-provider-csymbols.h"
 
 #define SOURCECOMPLETION_PLUGIN_GET_PRIVATE(object)	(G_TYPE_INSTANCE_GET_PRIVATE ((object), TYPE_SOURCECOMPLETION_PLUGIN, SourcecompletionPluginPrivate))
@@ -84,85 +85,42 @@ impl_update_ui (GeditPlugin *plugin,
 	SourcecompletionPlugin *self = (SourcecompletionPlugin*)plugin;
 	self->priv->gedit_window = window;
 	gedit_debug (DEBUG_PLUGINS);
-	/*
+	
 	GtkTextView* view = GTK_TEXT_VIEW(gedit_window_get_active_view(window));
 	if (view!=NULL)
 	{
 		GscManager *comp = gsc_manager_get_from_view(view);
-		if (comp==NULL)
+		if (comp == NULL)
 		{
 			comp = gsc_manager_new(GTK_TEXT_VIEW(view));
-			GValue value = {0,};
-			g_value_init(&value,G_TYPE_STRING);
-			g_value_set_string(&value,dw_plugin->priv->conf->si_keys);
-			g_object_set (comp,
-				      "info-keys",
-				      dw_plugin->priv->conf->si_keys,
-				      NULL);
-		}
-
-		if (gsc_manager_get_provider(comp,GSC_DOCUMENTWORDS_PROVIDER_NAME)==NULL)
-		{
-			
-			GscTriggerCustomkey *ck_trigger = gsc_trigger_customkey_new(comp,
-					OPEN_DOCS_TRIGGER_NAME, 
-					dw_plugin->priv->conf->od_keys);
-			gsc_manager_register_trigger(comp,GSC_TRIGGER(ck_trigger));
-			g_object_unref(ck_trigger);
-			
-			if (dw_plugin->priv->conf->ac_enabled)
-			{
-				GscTrigger *ur_trigger = 
-					gsc_manager_get_trigger(comp,USER_REQUEST_TRIGGER_NAME);
-				if (ur_trigger==NULL)
-				{
-					ur_trigger = GSC_TRIGGER(gsc_trigger_customkey_new(
-							comp,
-							USER_REQUEST_TRIGGER_NAME,
-							dw_plugin->priv->conf->ure_keys));
-					gsc_manager_register_trigger(comp,ur_trigger);
-					g_object_unref(ur_trigger);
-				}
-				GscTriggerAutowords *ac_trigger = gsc_trigger_autowords_new(comp);
-				gsc_manager_register_trigger(comp,GSC_TRIGGER(ac_trigger));
-				g_object_unref(ac_trigger);
-				gsc_trigger_autowords_set_delay(ac_trigger,dw_plugin->priv->conf->ac_delay);
-				GscDocumentwordsProvider *dw  = gsc_documentwords_provider_new(view);
-				gsc_manager_register_provider(comp,GSC_PROVIDER(dw),GSC_TRIGGER_AUTOWORDS_NAME);
-				gsc_manager_register_provider(comp,GSC_PROVIDER(dw),USER_REQUEST_TRIGGER_NAME);
-				g_object_unref(dw);
-			}
-			
-			
-			if (dw_plugin->priv->conf->open_enabled)
-			{
-				GscGeditopendocProvider* od = gsc_geditopendoc_provider_new(window);
-				gsc_manager_register_provider(comp,GSC_PROVIDER(od),OPEN_DOCS_TRIGGER_NAME);
-				g_object_unref(od);
-			}
-			
-			if (dw_plugin->priv->conf->recent_enabled)
-			{
-				GscGeditrecentProvider *grp = gsc_geditrecent_provider_new(window);
-				gsc_manager_register_provider(comp,GSC_PROVIDER(grp),OPEN_DOCS_TRIGGER_NAME);
-				g_object_unref(grp);
-			}
-			
-			g_object_set (comp,
-				      "autoselect", dw_plugin->priv->conf->autoselect_enabled,
-				      NULL);
-			
 			gsc_manager_activate(comp);
 		}
 
+		if (gsc_manager_get_trigger(comp,GSC_TRIGGER_SYMBOLS_NAME) == NULL)
+		{
+			GscTriggerSymbols *trigger = gsc_trigger_symbols_new(comp);
+			gsc_manager_register_trigger(comp,GSC_TRIGGER(trigger));
+			g_object_unref(trigger);
+		}
+		
+		/*FIXME create user-request trigger if doesn't exists*/
+		
+		if (gsc_manager_get_provider(comp,GSC_PROVIDER_CSYMBOLS_NAME) == NULL)
+		{
+			GscProviderCsymbols *prov = gsc_provider_csymbols_new (comp);
+			gsc_manager_register_provider(comp,
+						      GSC_PROVIDER (prov),
+						      GSC_TRIGGER_SYMBOLS_NAME);
+						      
+			if (gsc_manager_get_provider(comp, USER_REQUEST_TRIGGER_NAME) == NULL)
+			{
+				gsc_manager_register_provider(comp,
+							      GSC_PROVIDER (prov),
+							      USER_REQUEST_TRIGGER_NAME);
+			}
+			g_object_unref(prov);
+		}
 	}
-	*/
-}
-
-static GtkWidget*
-create_configure_dialog(GeditPlugin *plugin)
-{
-	return NULL;
 }
 
 static void
@@ -176,7 +134,6 @@ sourcecompletion_plugin_class_init (SourcecompletionPluginClass *klass)
 	plugin_class->activate = impl_activate;
 	plugin_class->deactivate = impl_deactivate;
 	plugin_class->update_ui = impl_update_ui;
-	plugin_class->create_configure_dialog = create_configure_dialog;
 
 	g_type_class_add_private (object_class, 
 				  sizeof (SourcecompletionPluginPrivate));
