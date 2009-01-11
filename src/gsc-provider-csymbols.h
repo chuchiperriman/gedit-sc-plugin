@@ -50,7 +50,7 @@ struct _GscProviderCsymbolsClass {
 
 GType gsc_provider_csymbols_get_type ();
 
-GscProviderCsymbols* gsc_provider_csymbols_new();
+GscProviderCsymbols* 	gsc_provider_csymbols_new	(GscManager *manager);
 
 G_END_DECLS
 

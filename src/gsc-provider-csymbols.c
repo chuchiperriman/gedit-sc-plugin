@@ -19,11 +19,24 @@
 
 #include "gsc-provider-csymbols.h"
 
+#define CTAGS_EXEC "sh -c \"ctags -n --fields=-k-f-s-t+K+l+n -f - %s/*.[ch]\""
+#define INFO_TMPL "<b>File:</b> %s\n<b>Type:</b> %s\n<b>Line:</b> %d"
+
 struct _GscProviderCsymbolsPrivate {
-	
+	GtkTextView	*view;
 };
 
 #define GSC_PROVIDER_CSYMBOLS_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), TYPE_GSC_PROVIDER_CSYMBOLS, GscProviderCsymbolsPrivate))
+
+/* just used to keep the population code readable */
+typedef struct 
+{
+        gchar           *name;
+        gchar           *type;
+        gchar           *file;
+        gchar           *language;
+        gint            line;
+} Symbol;
 
 static const gchar* 
 gsc_provider_csymbols_real_get_name (GscProvider* self);
@@ -38,6 +51,87 @@ gsc_provider_csymbols_parent_class = NULL;
 static GscProviderIface* 
 gsc_provider_csymbols_parent_iface = NULL;
 
+/*
+ *      Free strings used by Symbol struct while parsing
+ */ 
+static void
+symbol_free (Symbol *symbol)
+{
+        if (symbol->name != NULL) g_free (symbol->name);
+        if (symbol->file != NULL) g_free (symbol->file);
+        if (symbol->type != NULL) g_free (symbol->type);
+        if (symbol->language != NULL) g_free (symbol->language);
+        
+        g_slice_free (Symbol, symbol);
+}
+
+/*
+ *      This function needs work. Used to be custom parsed for ex searches
+ *      which could potentially contain tabs, however, I've decided that isn't
+ *      really needed. But, it's still using Symbol. We could just pass back
+ *      **fields array.
+ */ 
+static Symbol*
+parse_line (gchar *line)
+{
+	Symbol                  *symbol;
+	gchar                   **splits;
+	gchar                   **fields;
+
+	/* name, file, ex search, type, line:n  language:x */
+
+	symbol = g_slice_new0 (Symbol);
+
+	fields = g_strsplit (line, "\t", 0);
+	if (fields[0] == NULL) return NULL;
+
+	symbol->name = g_strdup (fields[0]);
+
+	symbol->file = g_path_get_basename (fields[1]);
+	symbol->type = g_strdup (fields[3]);
+
+	splits = g_strsplit (fields[4], ":", 0);
+	symbol->line = g_ascii_strtod (splits[1], NULL);
+	g_strfreev (splits);
+
+	splits = g_strsplit (fields[5], ":", 0);
+	symbol->language = g_strdup (splits[1]);
+	g_strfreev (splits);
+
+	g_strfreev (fields);
+
+	return symbol;
+}
+
+/*
+ *      execute the ctags command and return stdout
+ */ 
+static gchar *
+exec_ctags (gchar *folder)
+{
+	gchar                   *output;       
+	gchar                   *command;       
+	GError                  *error = NULL;  
+
+	/* build ctags command */
+
+	g_return_val_if_fail (folder != NULL, NULL);
+
+	command = g_strdup_printf (CTAGS_EXEC, 
+		        folder);
+
+	/* execute command */
+	g_spawn_command_line_sync (command, &output, NULL, NULL, &error);
+	if (error)
+	{
+		g_critical ("Could not execute ctags: %s\n", error->message);
+		g_error_free (error);
+	}
+
+	g_free (command);
+
+	return output;
+}
 
 static const gchar* 
 gsc_provider_csymbols_real_get_name (GscProvider* self)
@@ -49,26 +143,59 @@ static GList*
 gsc_provider_csymbols_real_get_proposals (GscProvider* base,
 					  GscTrigger *trigger)
 {
-	GList *list = NULL;
-	GscProposal *prop;
+
+	gchar			*output =NULL;
+	gchar			*info = NULL;
+	gchar			*current_word;
+	gchar			**lines = NULL;
+	gint			i;
+	GList			*list = NULL;
+	Symbol			*symbol;
+	GscProposal	 	*prop;
+	GscProviderCsymbols	*self;
 	
-	prop = gsc_proposal_new("GscTrigger",
-				"GscTrigger (Object which raise an event)",
-				NULL);
-	gsc_proposal_set_page_name (prop, "Symbols");
-	list = g_list_append (list, prop);
+	/* execute command */
+
+	output = exec_ctags ("/home/perriman/dev/git/gedit-sc-plugin/src");
 	
-	prop = gsc_proposal_new("GscProvider",
-				"GscProvider (Object which provides proposals)",
-				NULL);
-	gsc_proposal_set_page_name (prop, "Symbols");
-	list = g_list_append (list, prop);
-	
-	prop = gsc_proposal_new("GtkWidget",
-				"Base object for Gtk widgets",
-				NULL);
-	gsc_proposal_set_page_name (prop, "Symbols");
-	list = g_list_append (list, prop);
+	if (output != NULL)
+	{
+		self = GSC_PROVIDER_CSYMBOLS (base);
+		current_word = gsc_get_last_word_and_iter(self->priv->view,
+							  NULL,
+							  NULL);
+		lines = g_strsplit (output, "\n", 0);
+		for (i=0; lines[i]; i++)
+		{
+			symbol = parse_line (lines[i]);
+			if (symbol != NULL)
+			{
+				if (g_str_has_prefix (symbol->name, current_word))
+				{
+					info = g_strdup_printf (INFO_TMPL, 
+								symbol->file,
+								symbol->type,
+								symbol->line);
+			
+					prop = gsc_proposal_new(symbol->name,
+								info,
+								NULL);
+					g_free (info);
+					gsc_proposal_set_page_name (prop, "Symbols");
+					list = g_list_append (list, prop);
+				}
+				symbol_free (symbol);
+			}
+		}
+		g_strfreev (lines);
+		g_free (output);
+		g_free (current_word);
+		output = NULL;
+	}
+	else
+	{
+		g_debug ("no output");
+	}
 	
 	return list;
 }
@@ -126,8 +253,10 @@ GType gsc_provider_csymbols_get_type ()
 
 
 GscProviderCsymbols*
-gsc_provider_csymbols_new()
+gsc_provider_csymbols_new(GscManager *manager)
 {
-	return GSC_PROVIDER_CSYMBOLS (g_object_new (GSC_TYPE_PROVIDER_CSYMBOLS, NULL));
+	GscProviderCsymbols *self = GSC_PROVIDER_CSYMBOLS (g_object_new (GSC_TYPE_PROVIDER_CSYMBOLS, NULL));
+	self->priv->view = gsc_manager_get_view (manager);
+	return self;
 }
 
