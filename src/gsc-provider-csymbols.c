@@ -17,26 +17,21 @@
  *  along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <gedit/gedit-plugin.h>
 #include "gsc-provider-csymbols.h"
+#include "gsc-proposal-symgoto.h"
 
 #define CTAGS_EXEC "sh -c \"ctags -n --fields=-k-f-s-t+K+l+n -f - %s/*.[ch]\""
+/*FIXME Poner global porque se usa también en proposal-symgoto*/
 #define INFO_TMPL "<b>File:</b> %s\n<b>Type:</b> %s\n<b>Line:</b> %d"
 
 struct _GscProviderCsymbolsPrivate {
+	GeditWindow *gedit_win;
+	/*FIXME Do we need this view?*/
 	GtkTextView	*view;
 };
 
 #define GSC_PROVIDER_CSYMBOLS_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), TYPE_GSC_PROVIDER_CSYMBOLS, GscProviderCsymbolsPrivate))
-
-/* just used to keep the population code readable */
-typedef struct 
-{
-        gchar           *name;
-        gchar           *type;
-        gchar           *file;
-        gchar           *language;
-        gint            line;
-} Symbol;
 
 static const gchar* 
 gsc_provider_csymbols_real_get_name (GscProvider* self);
@@ -143,58 +138,65 @@ static GList*
 gsc_provider_csymbols_real_get_proposals (GscProvider* base,
 					  GscTrigger *trigger)
 {
-
-	gchar			*output =NULL;
-	gchar			*info = NULL;
-	gchar			*current_word;
-	gchar			**lines = NULL;
-	gint			i;
-	GList			*list = NULL;
-	Symbol			*symbol;
-	GscProposal	 	*prop;
-	GscProviderCsymbols	*self;
+	gchar		*output =NULL;
+	gchar		*info = NULL;
+	gchar		*dirname;
+	gchar 		*uri;
+	gchar		**lines = NULL;
+	gint		i;
+	GList		*list = NULL;
+	Symbol		*symbol;
+	GscProviderCsymbols *self;
+	GscProposal	*prop;
+	GeditDocument	*doc;
 	
-	/* execute command */
-
-	output = exec_ctags ("/home/perriman/dev/git/gedit-sc-plugin/src");
+	self = GSC_PROVIDER_CSYMBOLS (base);
 	
+	doc = gedit_window_get_active_document(self->priv->gedit_win);
+
+	if (doc == NULL) 
+		return NULL;
+	
+	uri = gedit_document_get_uri_for_display (doc);
+	if (uri == NULL)
+		return NULL;
+	
+	dirname = g_path_get_dirname (uri);
+	
+	g_free (uri);
+	output = exec_ctags (dirname);
+	g_free (dirname);
+
+	/* execute command */	
 	if (output != NULL)
 	{
-		self = GSC_PROVIDER_CSYMBOLS (base);
-		current_word = gsc_get_last_word_and_iter(self->priv->view,
-							  NULL,
-							  NULL);
 		lines = g_strsplit (output, "\n", 0);
 		for (i=0; lines[i]; i++)
 		{
 			symbol = parse_line (lines[i]);
 			if (symbol != NULL)
 			{
-				if (g_str_has_prefix (symbol->name, current_word))
-				{
-					info = g_strdup_printf (INFO_TMPL, 
-								symbol->file,
-								symbol->type,
-								symbol->line);
-			
-					prop = gsc_proposal_new(symbol->name,
-								info,
-								NULL);
-					g_free (info);
-					gsc_proposal_set_page_name (prop, "Symbols");
-					list = g_list_append (list, prop);
-				}
+				info = g_strdup_printf (INFO_TMPL, 
+							symbol->file,
+							symbol->type,
+							symbol->line);
+		
+				/*
+				prop = gsc_proposal_new(symbol->name,
+							info,
+							NULL);
+				*/
+				prop = gsc_proposal_symgoto_new (self->priv->gedit_win,
+								 symbol);
+				g_free (info);
+				gsc_proposal_set_page_name (prop, "Symbols");
+				list = g_list_append (list, prop);
 				symbol_free (symbol);
 			}
 		}
 		g_strfreev (lines);
 		g_free (output);
-		g_free (current_word);
 		output = NULL;
-	}
-	else
-	{
-		g_debug ("no output");
 	}
 	
 	return list;
@@ -237,6 +239,7 @@ static void
 gsc_provider_csymbols_init (GscProviderCsymbols * self)
 {
 	self->priv = g_new0(GscProviderCsymbolsPrivate, 1);
+	self->priv->gedit_win = NULL;
 }
 
 GType gsc_provider_csymbols_get_type ()
@@ -253,10 +256,12 @@ GType gsc_provider_csymbols_get_type ()
 
 
 GscProviderCsymbols*
-gsc_provider_csymbols_new(GscManager *manager)
+gsc_provider_csymbols_new (GscManager *manager,
+			   GeditWindow *gedit_win)
 {
 	GscProviderCsymbols *self = GSC_PROVIDER_CSYMBOLS (g_object_new (GSC_TYPE_PROVIDER_CSYMBOLS, NULL));
 	self->priv->view = gsc_manager_get_view (manager);
+	self->priv->gedit_win = gedit_win;
 	return self;
 }
 

@@ -36,6 +36,7 @@
 #include "gsc-provider-csymbols.h"
 
 #define SOURCECOMPLETION_PLUGIN_GET_PRIVATE(object)	(G_TYPE_INSTANCE_GET_PRIVATE ((object), TYPE_SOURCECOMPLETION_PLUGIN, SourcecompletionPluginPrivate))
+#define GOTO_SYMBOLS_TRIGGER_NAME "Goto Symbols Trigger"
 
 struct _SourcecompletionPluginPrivate
 {
@@ -103,14 +104,28 @@ impl_update_ui (GeditPlugin *plugin,
 			g_object_unref(trigger);
 		}
 		
+		if (gsc_manager_get_trigger (comp, GOTO_SYMBOLS_TRIGGER_NAME) == NULL)
+		{
+			GscTriggerCustomkey *goto_trigger = gsc_trigger_customkey_new(comp,
+					GOTO_SYMBOLS_TRIGGER_NAME, 
+					"<Control>m");
+			gsc_manager_register_trigger(comp,GSC_TRIGGER(goto_trigger));
+			g_object_unref(goto_trigger);
+		}
+		
 		/*FIXME create user-request trigger if doesn't exists*/
 		
 		if (gsc_manager_get_provider(comp,GSC_PROVIDER_CSYMBOLS_NAME) == NULL)
 		{
-			GscProviderCsymbols *prov = gsc_provider_csymbols_new (comp);
+			GscProviderCsymbols *prov = gsc_provider_csymbols_new (comp,
+									       window);
 			gsc_manager_register_provider(comp,
 						      GSC_PROVIDER (prov),
 						      GSC_TRIGGER_SYMBOLS_NAME);
+
+			gsc_manager_register_provider(comp,
+						      GSC_PROVIDER (prov),
+						      GOTO_SYMBOLS_TRIGGER_NAME);
 						      
 			if (gsc_manager_get_provider(comp, USER_REQUEST_TRIGGER_NAME) == NULL)
 			{

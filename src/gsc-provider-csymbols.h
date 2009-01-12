@@ -48,9 +48,19 @@ struct _GscProviderCsymbolsClass {
 	GObjectClass parent;
 };
 
+typedef struct 
+{
+        gchar           *name;
+        gchar           *type;
+        gchar           *file;
+        gchar           *language;
+        gint            line;
+} Symbol;
+
 GType gsc_provider_csymbols_get_type ();
 
-GscProviderCsymbols* 	gsc_provider_csymbols_new	(GscManager *manager);
+GscProviderCsymbols* 	gsc_provider_csymbols_new	(GscManager *manager,
+							 GeditWindow *gedit_win);
 
 G_END_DECLS
 
