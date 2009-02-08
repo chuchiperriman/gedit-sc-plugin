@@ -14381,7 +14381,7 @@ if test -n "$PKG_CONFIG"; then
 	gedit-2.20 >= 2.20.0
 	libglade-2.0 >= 2.4.0
 	gnome-vfs-2.0 >= 2.13.4
-	gtksourcecompletion-1.0 >= 0.6.0
+	gtksourcecompletion-2.0 >= 0.7.0
 	gconf-2.0
 \"") >&5
   ($PKG_CONFIG --exists --print-errors "
@@ -14391,7 +14391,7 @@ if test -n "$PKG_CONFIG"; then
 	gedit-2.20 >= 2.20.0
 	libglade-2.0 >= 2.4.0
 	gnome-vfs-2.0 >= 2.13.4
-	gtksourcecompletion-1.0 >= 0.6.0
+	gtksourcecompletion-2.0 >= 0.7.0
 	gconf-2.0
 ") 2>&5
   ac_status=$?
@@ -14404,7 +14404,7 @@ if test -n "$PKG_CONFIG"; then
 	gedit-2.20 >= 2.20.0
 	libglade-2.0 >= 2.4.0
 	gnome-vfs-2.0 >= 2.13.4
-	gtksourcecompletion-1.0 >= 0.6.0
+	gtksourcecompletion-2.0 >= 0.7.0
 	gconf-2.0
 " 2>/dev/null`
 else
@@ -14426,7 +14426,7 @@ if test -n "$PKG_CONFIG"; then
 	gedit-2.20 >= 2.20.0
 	libglade-2.0 >= 2.4.0
 	gnome-vfs-2.0 >= 2.13.4
-	gtksourcecompletion-1.0 >= 0.6.0
+	gtksourcecompletion-2.0 >= 0.7.0
 	gconf-2.0
 \"") >&5
   ($PKG_CONFIG --exists --print-errors "
@@ -14436,7 +14436,7 @@ if test -n "$PKG_CONFIG"; then
 	gedit-2.20 >= 2.20.0
 	libglade-2.0 >= 2.4.0
 	gnome-vfs-2.0 >= 2.13.4
-	gtksourcecompletion-1.0 >= 0.6.0
+	gtksourcecompletion-2.0 >= 0.7.0
 	gconf-2.0
 ") 2>&5
   ac_status=$?
@@ -14449,7 +14449,7 @@ if test -n "$PKG_CONFIG"; then
 	gedit-2.20 >= 2.20.0
 	libglade-2.0 >= 2.4.0
 	gnome-vfs-2.0 >= 2.13.4
-	gtksourcecompletion-1.0 >= 0.6.0
+	gtksourcecompletion-2.0 >= 0.7.0
 	gconf-2.0
 " 2>/dev/null`
 else
@@ -14477,7 +14477,7 @@ fi
 	gedit-2.20 >= 2.20.0
 	libglade-2.0 >= 2.4.0
 	gnome-vfs-2.0 >= 2.13.4
-	gtksourcecompletion-1.0 >= 0.6.0
+	gtksourcecompletion-2.0 >= 0.7.0
 	gconf-2.0
 "`
         else
@@ -14488,7 +14488,7 @@ fi
 	gedit-2.20 >= 2.20.0
 	libglade-2.0 >= 2.4.0
 	gnome-vfs-2.0 >= 2.13.4
-	gtksourcecompletion-1.0 >= 0.6.0
+	gtksourcecompletion-2.0 >= 0.7.0
 	gconf-2.0
 "`
         fi
@@ -14502,7 +14502,7 @@ fi
 	gedit-2.20 >= 2.20.0
 	libglade-2.0 >= 2.4.0
 	gnome-vfs-2.0 >= 2.13.4
-	gtksourcecompletion-1.0 >= 0.6.0
+	gtksourcecompletion-2.0 >= 0.7.0
 	gconf-2.0
 ) were not met:
 
@@ -14522,7 +14522,7 @@ echo "$as_me: error: Package requirements (
 	gedit-2.20 >= 2.20.0
 	libglade-2.0 >= 2.4.0
 	gnome-vfs-2.0 >= 2.13.4
-	gtksourcecompletion-1.0 >= 0.6.0
+	gtksourcecompletion-2.0 >= 0.7.0
 	gconf-2.0
 ) were not met:
 

@@ -25,6 +25,7 @@
 #include <glib-object.h>
 #include <gedit/gedit-plugin.h>
 #include <gtksourcecompletion/gsc-proposal.h>
+#include "gsc-provider-csymbols.h"
 
 G_BEGIN_DECLS
 
@@ -50,9 +51,8 @@ struct _GscProposalCsymbolClass {
 
 GType			 gsc_proposal_csymbol_get_type	();
 
-GscProposal		*gsc_proposal_csymbol_new		(const gchar *label,
-									 const gchar *info,
-									 GdkPixbuf *icon);
+GscProposal		*gsc_proposal_csymbol_new		(GeditWindow *window,
+			  					 Symbol *symbol);
 
 G_END_DECLS
 

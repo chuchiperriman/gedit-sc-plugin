@@ -24,7 +24,7 @@
 #include <glib.h>
 #include <glib-object.h>
 #include <gtksourcecompletion/gsc-trigger.h>
-#include <gtksourcecompletion/gsc-manager.h>
+#include <gtksourcecompletion/gsc-completion.h>
 
 G_BEGIN_DECLS
 
@@ -51,7 +51,7 @@ struct _GscTriggerSymbolsClass {
 };
 
 GscTriggerSymbols* 
-gsc_trigger_symbols_new(GscManager *completion);
+gsc_trigger_symbols_new(GscCompletion *completion);
 
 GType gsc_trigger_symbols_get_type ();
 

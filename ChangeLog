@@ -1,3 +1,7 @@
+2009-02-08  Jesús Barbero Rodríguez <chuchiperriman@gmail.com>
+
+	* general: Adapted to gtksourcecompletion-2.0
+
 2009-01-08  Jesús Barbero Rodríguez <chuchiperriman@gmail.com>
 
 	* general: Initial project

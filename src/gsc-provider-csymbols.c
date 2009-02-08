@@ -18,10 +18,13 @@
  */
 
 #include <gedit/gedit-plugin.h>
+#include <string.h>
+#include <gtksourcecompletion/gsc-utils.h>
 #include "gsc-provider-csymbols.h"
 #include "gsc-proposal-symgoto.h"
 
-#define CTAGS_EXEC "sh -c \"ctags -n --fields=-k-f-s-t+K+l+n -f - %s/*.[ch]\""
+#define CTAGS_EXEC_PROJECT "sh -c \"ctags -n --fields=-k-f-s-t+K+l+n -f - %s/*.[ch]\""
+#define CTAGS_EXEC_FILE "sh -c \"ctags -n --fields=-k-f-s-t+K+l+n -f - %s\""
 /*FIXME Poner global porque se usa también en proposal-symgoto*/
 #define INFO_TMPL "<b>File:</b> %s\n<b>Type:</b> %s\n<b>Line:</b> %d"
 
@@ -29,6 +32,7 @@ struct _GscProviderCsymbolsPrivate {
 	GeditWindow *gedit_win;
 	/*FIXME Do we need this view?*/
 	GtkTextView	*view;
+	gboolean isgoto;
 };
 
 #define GSC_PROVIDER_CSYMBOLS_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), TYPE_GSC_PROVIDER_CSYMBOLS, GscProviderCsymbolsPrivate))
@@ -102,7 +106,7 @@ parse_line (gchar *line)
  *      execute the ctags command and return stdout
  */ 
 static gchar *
-exec_ctags (gchar *folder)
+exec_ctags (gchar *filename)
 {
 	gchar                   *output;       
 	gchar                   *command;       
@@ -110,10 +114,10 @@ exec_ctags (gchar *folder)
 
 	/* build ctags command */
 
-	g_return_val_if_fail (folder != NULL, NULL);
+	g_return_val_if_fail (filename != NULL, NULL);
 
-	command = g_strdup_printf (CTAGS_EXEC, 
-		        folder);
+	command = g_strdup_printf (CTAGS_EXEC_FILE, 
+		        filename);
 
 	/* execute command */
 	g_spawn_command_line_sync (command, &output, NULL, NULL, &error);
@@ -129,9 +133,34 @@ exec_ctags (gchar *folder)
 }
 
 static const gchar* 
-gsc_provider_csymbols_real_get_name (GscProvider* self)
+gsc_provider_csymbols_real_get_name (GscProvider* base)
 {
-	return GSC_PROVIDER_CSYMBOLS_NAME;
+	GscProviderCsymbols *self = GSC_PROVIDER_CSYMBOLS(base);
+	
+	if (self->priv->isgoto)
+		return "GscProviderCsymbolsGoto";
+	else
+		return "GscProviderCsymbols";
+}
+
+static gboolean
+is_valid_word(gchar *current_word, gchar *completion_word)
+{
+	if (g_utf8_strlen(completion_word, -1) < 3)
+		return FALSE;
+	
+	if (current_word==NULL)
+		return TRUE;
+		
+	gint len_cur = strlen (current_word);
+	if (g_utf8_collate(current_word,completion_word) == 0)
+			return FALSE;
+
+	if (len_cur!=0 && strncmp(current_word,completion_word,len_cur)==0)
+	{
+		return TRUE;
+	}
+	return FALSE;
 }
 
 static GList* 
@@ -139,8 +168,6 @@ gsc_provider_csymbols_real_get_proposals (GscProvider* base,
 					  GscTrigger *trigger)
 {
 	gchar		*output =NULL;
-	gchar		*info = NULL;
-	gchar		*dirname;
 	gchar 		*uri;
 	gchar		**lines = NULL;
 	gint		i;
@@ -149,6 +176,8 @@ gsc_provider_csymbols_real_get_proposals (GscProvider* base,
 	GscProviderCsymbols *self;
 	GscProposal	*prop;
 	GeditDocument	*doc;
+	gchar		*current_word;
+	gchar		*cleaned_word;
 	
 	self = GSC_PROVIDER_CSYMBOLS (base);
 	
@@ -156,16 +185,19 @@ gsc_provider_csymbols_real_get_proposals (GscProvider* base,
 
 	if (doc == NULL) 
 		return NULL;
+
+	current_word = gsc_get_last_word(self->priv->view);
+	
+	cleaned_word = gsc_clear_word(current_word);
+	g_free(current_word);
+	
 	
 	uri = gedit_document_get_uri_for_display (doc);
 	if (uri == NULL)
 		return NULL;
 	
-	dirname = g_path_get_dirname (uri);
-	
+	output = exec_ctags (uri);
 	g_free (uri);
-	output = exec_ctags (dirname);
-	g_free (dirname);
 
 	/* execute command */	
 	if (output != NULL)
@@ -173,25 +205,30 @@ gsc_provider_csymbols_real_get_proposals (GscProvider* base,
 		lines = g_strsplit (output, "\n", 0);
 		for (i=0; lines[i]; i++)
 		{
+			prop = NULL;
 			symbol = parse_line (lines[i]);
 			if (symbol != NULL)
 			{
-				info = g_strdup_printf (INFO_TMPL, 
-							symbol->file,
-							symbol->type,
-							symbol->line);
-		
-				/*
-				prop = gsc_proposal_new(symbol->name,
-							info,
-							NULL);
-				*/
-				prop = gsc_proposal_symgoto_new (self->priv->gedit_win,
-								 symbol);
-				g_free (info);
-				gsc_proposal_set_page_name (prop, "Symbols");
-				list = g_list_append (list, prop);
-				symbol_free (symbol);
+				if (self->priv->isgoto)
+				{
+					prop = gsc_proposal_symgoto_new (self->priv->gedit_win,
+									 symbol);
+				}
+				else
+				{
+					if (is_valid_word (cleaned_word, symbol->name))
+					{
+						prop = gsc_proposal_csymbol_new (self->priv->gedit_win,
+										 symbol);
+					}
+				}
+
+				if (prop != NULL)
+				{
+					gsc_proposal_set_page_name (prop, "Symbols");
+					list = g_list_append (list, prop);
+					symbol_free (symbol);
+				}
 			}
 		}
 		g_strfreev (lines);
@@ -256,12 +293,14 @@ GType gsc_provider_csymbols_get_type ()
 
 
 GscProviderCsymbols*
-gsc_provider_csymbols_new (GscManager *manager,
-			   GeditWindow *gedit_win)
+gsc_provider_csymbols_new (GscCompletion *comp,
+			   GeditWindow *gedit_win,
+			   gboolean isgoto)
 {
 	GscProviderCsymbols *self = GSC_PROVIDER_CSYMBOLS (g_object_new (GSC_TYPE_PROVIDER_CSYMBOLS, NULL));
-	self->priv->view = gsc_manager_get_view (manager);
+	self->priv->view = gsc_completion_get_view (comp);
 	self->priv->gedit_win = gedit_win;
+	self->priv->isgoto = isgoto;
 	return self;
 }
 

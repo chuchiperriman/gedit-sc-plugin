@@ -25,7 +25,7 @@
 #include "gsc-trigger-symbols.h"
 
 struct _GscTriggerSymbolsPrivate {
-	GscManager *manager;
+	GscCompletion *comp;
 	gint init_offset;
 };
 
@@ -146,22 +146,22 @@ insert_text_cb (GtkTextBuffer *textbuffer,
 	if (g_strcmp0 (text, ".") == 0)
 	{
 		self->priv->init_offset = gtk_text_iter_get_line_offset (location);
-		gsc_manager_trigger_event (self->priv->manager,
-					   GSC_TRIGGER_SYMBOLS_NAME);
+		gsc_completion_trigger_event (self->priv->comp,
+					   GSC_TRIGGER (self));
 	}
 	else
 	{
-		if (gsc_manager_is_visible (self->priv->manager) && 
-		    gsc_manager_get_active_trigger(self->priv->manager) == GSC_TRIGGER (self))
+		if (GTK_WIDGET_VISIBLE (self->priv->comp) && 
+		    gsc_completion_get_active_trigger(self->priv->comp) == GSC_TRIGGER (self))
 		{
 			if (gsc_char_is_separator (g_utf8_get_char (text)) ||
 			    gtk_text_iter_get_line_offset (location) < self->priv->init_offset)
 			{
-				gsc_manager_finish_completion (self->priv->manager);
+				gsc_completion_finish_completion (self->priv->comp);
 			}
 			else
 			{
-				GtkTextView *view = gsc_manager_get_view (self->priv->manager);
+				GtkTextView *view = gsc_completion_get_view (self->priv->comp);
 				GtkTextBuffer *buffer = gtk_text_view_get_buffer (view);
 				/*Filter the current proposals */
 				while (gtk_text_iter_get_line_offset (&iter) > self->priv->init_offset + 1)
@@ -175,7 +175,7 @@ insert_text_cb (GtkTextBuffer *textbuffer,
 								   FALSE);
 				filter = g_strconcat (temp, text, NULL);
 				g_free (temp);
-				gsc_manager_filter_current_proposals (self->priv->manager,
+				gsc_completion_filter_proposals (self->priv->comp,
 								      symbols_filter_func,
 								      filter);
 				g_free (filter);
@@ -191,11 +191,11 @@ insert_text_cb (GtkTextBuffer *textbuffer,
  *
  */
 GscTriggerSymbols*
-gsc_trigger_symbols_new(GscManager *manager)
+gsc_trigger_symbols_new(GscCompletion *comp)
 {
 	GscTriggerSymbols *self = GSC_TRIGGER_SYMBOLS (g_object_new (GSC_TYPE_TRIGGER_SYMBOLS, NULL));
-	self->priv->manager = manager;
-	GtkTextView *view = gsc_manager_get_view (manager);
+	self->priv->comp = comp;
+	GtkTextView *view = gsc_completion_get_view (comp);
 	GtkTextBuffer *buffer = gtk_text_view_get_buffer (view);
 	/*FIXME disconnect on destroy*/
 	g_signal_connect(buffer,"insert-text",G_CALLBACK(insert_text_cb), self);

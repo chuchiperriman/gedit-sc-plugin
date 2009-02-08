@@ -90,51 +90,69 @@ impl_update_ui (GeditPlugin *plugin,
 	GtkTextView* view = GTK_TEXT_VIEW(gedit_window_get_active_view(window));
 	if (view!=NULL)
 	{
-		GscManager *comp = gsc_manager_get_from_view(view);
+		GscCompletion *comp = gsc_completion_get_from_view(view);
 		if (comp == NULL)
 		{
-			comp = gsc_manager_new(GTK_TEXT_VIEW(view));
-			gsc_manager_activate(comp);
+			comp = GSC_COMPLETION (gsc_completion_new(GTK_TEXT_VIEW(view)));
+			gsc_completion_activate(comp);
 		}
 
-		if (gsc_manager_get_trigger(comp,GSC_TRIGGER_SYMBOLS_NAME) == NULL)
+		GscTrigger *trigger = gsc_completion_get_trigger(comp,GSC_TRIGGER_SYMBOLS_NAME);
+		if (trigger == NULL)
 		{
-			GscTriggerSymbols *trigger = gsc_trigger_symbols_new(comp);
-			gsc_manager_register_trigger(comp,GSC_TRIGGER(trigger));
+			trigger = GSC_TRIGGER (gsc_trigger_symbols_new(comp));
+			gsc_completion_register_trigger(comp,GSC_TRIGGER(trigger));
 			g_object_unref(trigger);
 		}
 		
-		if (gsc_manager_get_trigger (comp, GOTO_SYMBOLS_TRIGGER_NAME) == NULL)
+		GscTrigger *goto_trigger = gsc_completion_get_trigger (comp, GOTO_SYMBOLS_TRIGGER_NAME);
+		if (goto_trigger == NULL)
 		{
-			GscTriggerCustomkey *goto_trigger = gsc_trigger_customkey_new(comp,
-					GOTO_SYMBOLS_TRIGGER_NAME, 
-					"<Control>m");
-			gsc_manager_register_trigger(comp,GSC_TRIGGER(goto_trigger));
+			goto_trigger = GSC_TRIGGER (gsc_trigger_customkey_new(comp,
+							GOTO_SYMBOLS_TRIGGER_NAME, 
+							"<Control>o"));
+			gsc_completion_register_trigger(comp,GSC_TRIGGER(goto_trigger));
 			g_object_unref(goto_trigger);
+		}
+		GscTrigger *ur_trigger = gsc_completion_get_trigger(comp, USER_REQUEST_TRIGGER_NAME);
+		if (ur_trigger == NULL)
+		{
+			ur_trigger = GSC_TRIGGER (gsc_trigger_customkey_new(comp,
+						USER_REQUEST_TRIGGER_NAME, 
+						"<Control>space"));
+			gsc_completion_register_trigger(comp,GSC_TRIGGER(ur_trigger));
+			g_object_unref(ur_trigger);
 		}
 		
 		/*FIXME create user-request trigger if doesn't exists*/
-		
+		/*
+		FIXME Do we need add this function to completion?
 		if (gsc_manager_get_provider(comp,GSC_PROVIDER_CSYMBOLS_NAME) == NULL)
 		{
-			GscProviderCsymbols *prov = gsc_provider_csymbols_new (comp,
-									       window);
-			gsc_manager_register_provider(comp,
-						      GSC_PROVIDER (prov),
-						      GSC_TRIGGER_SYMBOLS_NAME);
+		*/
+		GscProviderCsymbols *goto_prov = gsc_provider_csymbols_new (comp,
+									    window,
+									    TRUE);
+		gsc_completion_register_provider(comp,
+						 GSC_PROVIDER (goto_prov),
+						 GSC_TRIGGER (goto_trigger));
 
-			gsc_manager_register_provider(comp,
-						      GSC_PROVIDER (prov),
-						      GOTO_SYMBOLS_TRIGGER_NAME);
-						      
-			if (gsc_manager_get_provider(comp, USER_REQUEST_TRIGGER_NAME) == NULL)
-			{
-				gsc_manager_register_provider(comp,
-							      GSC_PROVIDER (prov),
-							      USER_REQUEST_TRIGGER_NAME);
-			}
-			g_object_unref(prov);
-		}
+		GscProviderCsymbols *csym_prov = gsc_provider_csymbols_new (comp,
+									    window,
+									    FALSE);
+		gsc_completion_register_provider(comp,
+						 GSC_PROVIDER (csym_prov),
+						 ur_trigger);
+/*
+		gsc_completion_register_provider(comp,
+					      GSC_PROVIDER (prov),
+					      GSC_TRIGGER (trigger));
+		gsc_completion_register_provider(comp,
+					      GSC_PROVIDER (prov),
+					      ur_trigger);
+*/
+		g_object_unref(goto_prov);
+		g_object_unref(csym_prov);
 	}
 }
 

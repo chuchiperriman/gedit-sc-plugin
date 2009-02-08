@@ -22,7 +22,7 @@
 #include <glib.h>
 #include <glib-object.h>
 #include <gtksourcecompletion/gsc-provider.h>
-#include <gtksourcecompletion/gsc-manager.h>
+#include <gtksourcecompletion/gsc-completion.h>
 
 G_BEGIN_DECLS
 
@@ -32,8 +32,6 @@ G_BEGIN_DECLS
 #define GSC_IS_PROVIDER_CSYMBOLS(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GSC_TYPE_PROVIDER_CSYMBOLS))
 #define GSC_IS_PROVIDER_CSYMBOLS_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GSC_TYPE_PROVIDER_CSYMBOLS))
 #define GSC_PROVIDER_CSYMBOLS_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), GSC_TYPE_PROVIDER_CSYMBOLS, GscProviderCsymbolsClass))
-
-#define GSC_PROVIDER_CSYMBOLS_NAME "GscProviderCsymbols"
 
 typedef struct _GscProviderCsymbols GscProviderCsymbols;
 typedef struct _GscProviderCsymbolsClass GscProviderCsymbolsClass;
@@ -59,8 +57,9 @@ typedef struct
 
 GType gsc_provider_csymbols_get_type ();
 
-GscProviderCsymbols* 	gsc_provider_csymbols_new	(GscManager *manager,
-							 GeditWindow *gedit_win);
+GscProviderCsymbols* 	gsc_provider_csymbols_new	(GscCompletion *comp,
+							 GeditWindow *gedit_win,
+							 gboolean isgoto);
 
 G_END_DECLS
 
