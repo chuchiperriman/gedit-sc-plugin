@@ -128,7 +128,6 @@ exec_ctags (gchar *filename)
 	}
 
 	g_free (command);
-
 	return output;
 }
 
@@ -138,9 +137,9 @@ gsc_provider_csymbols_real_get_name (GscProvider* base)
 	GscProviderCsymbols *self = GSC_PROVIDER_CSYMBOLS(base);
 	
 	if (self->priv->isgoto)
-		return "GscProviderCsymbolsGoto";
+		return GSC_PROVIDER_CSYMBOLS_GOTO_NAME;
 	else
-		return "GscProviderCsymbols";
+		return GSC_PROVIDER_CSYMBOLS_NAME;
 }
 
 static gboolean
@@ -195,7 +194,7 @@ gsc_provider_csymbols_real_get_proposals (GscProvider* base,
 	uri = gedit_document_get_uri_for_display (doc);
 	if (uri == NULL)
 		return NULL;
-	
+	g_debug ("uri: %s",uri);
 	output = exec_ctags (uri);
 	g_free (uri);
 
@@ -225,6 +224,7 @@ gsc_provider_csymbols_real_get_proposals (GscProvider* base,
 
 				if (prop != NULL)
 				{
+					/*gsc_proposal_set_page_name (prop, symbol->type);*/
 					gsc_proposal_set_page_name (prop, "Symbols");
 					list = g_list_append (list, prop);
 					symbol_free (symbol);

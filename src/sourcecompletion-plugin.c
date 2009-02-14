@@ -104,7 +104,7 @@ impl_update_ui (GeditPlugin *plugin,
 			gsc_completion_register_trigger(comp,GSC_TRIGGER(trigger));
 			g_object_unref(trigger);
 		}
-		
+	
 		GscTrigger *goto_trigger = gsc_completion_get_trigger (comp, GOTO_SYMBOLS_TRIGGER_NAME);
 		if (goto_trigger == NULL)
 		{
@@ -125,24 +125,30 @@ impl_update_ui (GeditPlugin *plugin,
 		}
 		
 		/*FIXME create user-request trigger if doesn't exists*/
-		/*
-		FIXME Do we need add this function to completion?
-		if (gsc_manager_get_provider(comp,GSC_PROVIDER_CSYMBOLS_NAME) == NULL)
+		GscProviderCsymbols *goto_prov;
+		GscProviderCsymbols *csym_prov;
+		
+		if (gsc_completion_get_provider (comp, GSC_PROVIDER_CSYMBOLS_GOTO_NAME) == NULL)
 		{
-		*/
-		GscProviderCsymbols *goto_prov = gsc_provider_csymbols_new (comp,
-									    window,
-									    TRUE);
-		gsc_completion_register_provider(comp,
-						 GSC_PROVIDER (goto_prov),
-						 GSC_TRIGGER (goto_trigger));
+			goto_prov = gsc_provider_csymbols_new (comp,
+							       window,
+							       TRUE);
+			gsc_completion_register_provider(comp,
+							 GSC_PROVIDER (goto_prov),
+							 GSC_TRIGGER (goto_trigger));
+			g_object_unref(goto_prov);
+		}
 
-		GscProviderCsymbols *csym_prov = gsc_provider_csymbols_new (comp,
-									    window,
-									    FALSE);
-		gsc_completion_register_provider(comp,
-						 GSC_PROVIDER (csym_prov),
-						 ur_trigger);
+		if (gsc_completion_get_provider (comp, GSC_PROVIDER_CSYMBOLS_NAME) == NULL)
+		{
+			csym_prov = gsc_provider_csymbols_new (comp,
+							       window,
+							       FALSE);
+			gsc_completion_register_provider(comp,
+						 	 GSC_PROVIDER (csym_prov),
+							 ur_trigger);
+			g_object_unref(csym_prov);
+		}
 /*
 		gsc_completion_register_provider(comp,
 					      GSC_PROVIDER (prov),
@@ -151,8 +157,6 @@ impl_update_ui (GeditPlugin *plugin,
 					      GSC_PROVIDER (prov),
 					      ur_trigger);
 */
-		g_object_unref(goto_prov);
-		g_object_unref(csym_prov);
 	}
 }
 

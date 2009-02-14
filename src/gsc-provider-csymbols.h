@@ -33,6 +33,9 @@ G_BEGIN_DECLS
 #define GSC_IS_PROVIDER_CSYMBOLS_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GSC_TYPE_PROVIDER_CSYMBOLS))
 #define GSC_PROVIDER_CSYMBOLS_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), GSC_TYPE_PROVIDER_CSYMBOLS, GscProviderCsymbolsClass))
 
+#define GSC_PROVIDER_CSYMBOLS_NAME "GscProviderCsymbols"
+#define GSC_PROVIDER_CSYMBOLS_GOTO_NAME "GscProviderCsymbolsGoto"
+
 typedef struct _GscProviderCsymbols GscProviderCsymbols;
 typedef struct _GscProviderCsymbolsClass GscProviderCsymbolsClass;
 typedef struct _GscProviderCsymbolsPrivate GscProviderCsymbolsPrivate;
