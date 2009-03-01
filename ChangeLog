@@ -1,3 +1,11 @@
+2009-03-01  Jesús Barbero Rodríguez <chuchiperriman@gmail.com>
+
+	* general: 
+	Added trigger-members.
+	Added goto provider and global goto provider to get ctags from the
+	file dir instead only the current file.
+
+
 2009-02-08  Jesús Barbero Rodríguez <chuchiperriman@gmail.com>
 
 	* general: Adapted to gtksourcecompletion-2.0

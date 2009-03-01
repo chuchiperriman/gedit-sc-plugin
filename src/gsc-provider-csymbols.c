@@ -32,7 +32,7 @@ struct _GscProviderCsymbolsPrivate {
 	GeditWindow *gedit_win;
 	/*FIXME Do we need this view?*/
 	GtkTextView	*view;
-	gboolean isgoto;
+	CSymbolsType type;
 };
 
 #define GSC_PROVIDER_CSYMBOLS_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), TYPE_GSC_PROVIDER_CSYMBOLS, GscProviderCsymbolsPrivate))
@@ -106,7 +106,7 @@ parse_line (gchar *line)
  *      execute the ctags command and return stdout
  */ 
 static gchar *
-exec_ctags (gchar *filename)
+exec_ctags (const gchar *exec, gchar *filename)
 {
 	gchar                   *output;       
 	gchar                   *command;       
@@ -116,7 +116,7 @@ exec_ctags (gchar *filename)
 
 	g_return_val_if_fail (filename != NULL, NULL);
 
-	command = g_strdup_printf (CTAGS_EXEC_FILE, 
+	command = g_strdup_printf (exec, 
 		        filename);
 
 	/* execute command */
@@ -136,10 +136,14 @@ gsc_provider_csymbols_real_get_name (GscProvider* base)
 {
 	GscProviderCsymbols *self = GSC_PROVIDER_CSYMBOLS(base);
 	
-	if (self->priv->isgoto)
+	if (self->priv->type == GOTO_TYPE)
 		return GSC_PROVIDER_CSYMBOLS_GOTO_NAME;
-	else
+	else if (self->priv->type == SYMBOLS_TYPE)
 		return GSC_PROVIDER_CSYMBOLS_NAME;
+	else if (self->priv->type == GLOBAL_GOTO_TYPE)
+		return GSC_PROVIDER_CSYMBOLS_GLOBAL_GOTO_NAME;
+	else
+		return GSC_PROVIDER_CSYMBOLS_MEMBERS_NAME;
 }
 
 static gboolean
@@ -162,6 +166,12 @@ is_valid_word(gchar *current_word, gchar *completion_word)
 	return FALSE;
 }
 
+static gboolean
+is_member (Symbol *symbol) 
+{
+	return g_strcmp0 (symbol->type, "member") == 0;
+}
+
 static GList* 
 gsc_provider_csymbols_real_get_proposals (GscProvider* base,
 					  GscTrigger *trigger)
@@ -177,6 +187,8 @@ gsc_provider_csymbols_real_get_proposals (GscProvider* base,
 	GeditDocument	*doc;
 	gchar		*current_word;
 	gchar		*cleaned_word;
+	gchar		*dir;
+	const gchar	*exec = CTAGS_EXEC_FILE;
 	
 	self = GSC_PROVIDER_CSYMBOLS (base);
 	
@@ -190,14 +202,24 @@ gsc_provider_csymbols_real_get_proposals (GscProvider* base,
 	cleaned_word = gsc_clear_word(current_word);
 	g_free(current_word);
 	
-	
 	uri = gedit_document_get_uri_for_display (doc);
 	if (uri == NULL)
 		return NULL;
-	g_debug ("uri: %s",uri);
-	output = exec_ctags (uri);
-	g_free (uri);
 
+	g_debug ("uri: %s",uri);
+	
+	if (self->priv->type == GLOBAL_GOTO_TYPE)
+	{
+		dir = g_path_get_dirname (uri);
+		g_free (uri);
+		uri = dir;
+		g_debug ("global uri: %s", uri);
+		exec = CTAGS_EXEC_PROJECT;
+	}
+
+	output = exec_ctags (exec, uri);
+	g_free (uri);
+	
 	/* execute command */	
 	if (output != NULL)
 	{
@@ -208,14 +230,24 @@ gsc_provider_csymbols_real_get_proposals (GscProvider* base,
 			symbol = parse_line (lines[i]);
 			if (symbol != NULL)
 			{
-				if (self->priv->isgoto)
+				if (self->priv->type == GOTO_TYPE || 
+				    self->priv->type == GLOBAL_GOTO_TYPE)
 				{
+					g_debug ("-%d-", self->priv->type);
 					prop = gsc_proposal_symgoto_new (self->priv->gedit_win,
 									 symbol);
 				}
-				else
+				else if (self->priv->type == SYMBOLS_TYPE)
 				{
 					if (is_valid_word (cleaned_word, symbol->name))
+					{
+						prop = gsc_proposal_csymbol_new (self->priv->gedit_win,
+										 symbol);
+					}
+				}
+				else
+				{
+					if (is_member (symbol))
 					{
 						prop = gsc_proposal_csymbol_new (self->priv->gedit_win,
 										 symbol);
@@ -224,8 +256,11 @@ gsc_provider_csymbols_real_get_proposals (GscProvider* base,
 
 				if (prop != NULL)
 				{
-					/*gsc_proposal_set_page_name (prop, symbol->type);*/
-					gsc_proposal_set_page_name (prop, "Symbols");
+					if (self->priv->type == GLOBAL_GOTO_TYPE)
+						gsc_proposal_set_page_name (prop, "Project Symbols");
+					else
+						gsc_proposal_set_page_name (prop, "Symbols");
+						
 					list = g_list_append (list, prop);
 					symbol_free (symbol);
 				}
@@ -295,12 +330,12 @@ GType gsc_provider_csymbols_get_type ()
 GscProviderCsymbols*
 gsc_provider_csymbols_new (GscCompletion *comp,
 			   GeditWindow *gedit_win,
-			   gboolean isgoto)
+			   CSymbolsType type)
 {
 	GscProviderCsymbols *self = GSC_PROVIDER_CSYMBOLS (g_object_new (GSC_TYPE_PROVIDER_CSYMBOLS, NULL));
 	self->priv->view = gsc_completion_get_view (comp);
 	self->priv->gedit_win = gedit_win;
-	self->priv->isgoto = isgoto;
+	self->priv->type = type;
 	return self;
 }
 

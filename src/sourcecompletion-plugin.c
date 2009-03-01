@@ -33,6 +33,7 @@
 #include <gtksourcecompletion/gsc-trigger-autowords.h>
 
 #include "gsc-trigger-symbols.h"
+#include "gsc-trigger-members.h"
 #include "gsc-provider-csymbols.h"
 
 #define SOURCECOMPLETION_PLUGIN_GET_PRIVATE(object)	(G_TYPE_INSTANCE_GET_PRIVATE ((object), TYPE_SOURCECOMPLETION_PLUGIN, SourcecompletionPluginPrivate))
@@ -124,15 +125,25 @@ impl_update_ui (GeditPlugin *plugin,
 			g_object_unref(ur_trigger);
 		}
 		
+		GscTrigger *m_trigger = gsc_completion_get_trigger(comp, GSC_TRIGGER_MEMBERS_NAME);
+		if (m_trigger == NULL)
+		{
+			m_trigger = GSC_TRIGGER (gsc_trigger_members_new(comp));
+			gsc_completion_register_trigger(comp,GSC_TRIGGER(m_trigger));
+			g_object_unref(m_trigger);
+		}
+		
 		/*FIXME create user-request trigger if doesn't exists*/
 		GscProviderCsymbols *goto_prov;
+		GscProviderCsymbols *ggoto_prov;
 		GscProviderCsymbols *csym_prov;
+		GscProviderCsymbols *mem_prov;
 		
 		if (gsc_completion_get_provider (comp, GSC_PROVIDER_CSYMBOLS_GOTO_NAME) == NULL)
 		{
 			goto_prov = gsc_provider_csymbols_new (comp,
 							       window,
-							       TRUE);
+							       GOTO_TYPE);
 			gsc_completion_register_provider(comp,
 							 GSC_PROVIDER (goto_prov),
 							 GSC_TRIGGER (goto_trigger));
@@ -143,11 +154,33 @@ impl_update_ui (GeditPlugin *plugin,
 		{
 			csym_prov = gsc_provider_csymbols_new (comp,
 							       window,
-							       FALSE);
+							       SYMBOLS_TYPE);
 			gsc_completion_register_provider(comp,
 						 	 GSC_PROVIDER (csym_prov),
 							 ur_trigger);
 			g_object_unref(csym_prov);
+		}
+		
+		if (gsc_completion_get_provider (comp, GSC_PROVIDER_CSYMBOLS_MEMBERS_NAME) == NULL)
+		{
+			mem_prov = gsc_provider_csymbols_new (comp,
+							       window,
+							       MEMBERS_TYPE);
+			gsc_completion_register_provider(comp,
+						 	 GSC_PROVIDER (mem_prov),
+							 m_trigger);
+			g_object_unref(mem_prov);
+		}
+		
+		if (gsc_completion_get_provider (comp, GSC_PROVIDER_CSYMBOLS_GLOBAL_GOTO_NAME) == NULL)
+		{
+			ggoto_prov = gsc_provider_csymbols_new (comp,
+							       window,
+							       GLOBAL_GOTO_TYPE);
+			gsc_completion_register_provider(comp,
+						 	 GSC_PROVIDER (ggoto_prov),
+							 goto_trigger);
+			g_object_unref(ggoto_prov);
 		}
 /*
 		gsc_completion_register_provider(comp,

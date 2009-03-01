@@ -35,6 +35,8 @@ G_BEGIN_DECLS
 
 #define GSC_PROVIDER_CSYMBOLS_NAME "GscProviderCsymbols"
 #define GSC_PROVIDER_CSYMBOLS_GOTO_NAME "GscProviderCsymbolsGoto"
+#define GSC_PROVIDER_CSYMBOLS_GLOBAL_GOTO_NAME "GscProviderCsymbolsGlobalGoto"
+#define GSC_PROVIDER_CSYMBOLS_MEMBERS_NAME "GscProviderCsymbolsMembers"
 
 typedef struct _GscProviderCsymbols GscProviderCsymbols;
 typedef struct _GscProviderCsymbolsClass GscProviderCsymbolsClass;
@@ -49,6 +51,14 @@ struct _GscProviderCsymbolsClass {
 	GObjectClass parent;
 };
 
+typedef enum
+{
+	SYMBOLS_TYPE,
+	GOTO_TYPE,
+	MEMBERS_TYPE,
+	GLOBAL_GOTO_TYPE
+} CSymbolsType;
+
 typedef struct 
 {
         gchar           *name;
@@ -62,7 +72,7 @@ GType gsc_provider_csymbols_get_type ();
 
 GscProviderCsymbols* 	gsc_provider_csymbols_new	(GscCompletion *comp,
 							 GeditWindow *gedit_win,
-							 gboolean isgoto);
+							 CSymbolsType type);
 
 G_END_DECLS
 

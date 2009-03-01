@@ -18,6 +18,8 @@ libsourcecompletion_la_SOURCES = \
 	gsc-proposal-csymbol.c		\
 	gsc-trigger-symbols.h		\
 	gsc-trigger-symbols.c		\
+	gsc-trigger-members.h		\
+	gsc-trigger-members.c		\
 	gsc-proposal-symgoto.h		\
 	gsc-proposal-symgoto.c		\
 	sourcecompletion-plugin.h	\
