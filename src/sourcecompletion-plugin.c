@@ -95,7 +95,7 @@ impl_update_ui (GeditPlugin *plugin,
 		if (comp == NULL)
 		{
 			comp = GSC_COMPLETION (gsc_completion_new(GTK_TEXT_VIEW(view)));
-			gsc_completion_activate(comp);
+			gsc_completion_set_active (comp, TRUE);
 		}
 
 		GscTrigger *trigger = gsc_completion_get_trigger(comp,GSC_TRIGGER_SYMBOLS_NAME);

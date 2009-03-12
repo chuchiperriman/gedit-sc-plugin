@@ -9,6 +9,10 @@ INCLUDES = \
 	`pkg-config --cflags gconf-2.0`					\
 	-DGEDIT_LOCALEDIR=\""$(prefix)/$(DATADIRNAME)/locale"\"
 
+AM_CFLAGS =\
+         -Wall\
+         -g
+
 plugin_LTLIBRARIES = libsourcecompletion.la
 
 libsourcecompletion_la_SOURCES = \
