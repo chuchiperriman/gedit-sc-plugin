@@ -60,7 +60,7 @@ gsc_proposal_symgoto_apply(GscProposal* proposal, GtkTextView *view)
 				NULL,
 				self->priv->line);
 	g_free (uri);
-	return TRUE;
+	return FALSE;
 }
 
 static void
@@ -79,6 +79,7 @@ gsc_proposal_symgoto_class_init (GscProposalSymgotoClass *klass)
 	
 	GscProposalClass *proposal_class = GSC_PROPOSAL_CLASS (klass);
 	proposal_class->apply = gsc_proposal_symgoto_apply;
+	object_class->finalize = gsc_proposal_symgoto_finalize;
 }
 
 static void

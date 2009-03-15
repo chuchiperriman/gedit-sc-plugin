@@ -102,7 +102,6 @@ static gboolean
 gsc_trigger_members_real_deactivate (GscTrigger* base)
 {
 	g_debug("Deactivating Members trigger");
-	GscTriggerMembers *self = GSC_TRIGGER_MEMBERS(base);
 	return FALSE;
 }
 

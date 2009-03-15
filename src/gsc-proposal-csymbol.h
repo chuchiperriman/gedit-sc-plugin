@@ -54,6 +54,7 @@ GType			 gsc_proposal_csymbol_get_type	();
 GscProposal		*gsc_proposal_csymbol_new		(GeditWindow *window,
 			  					 Symbol *symbol);
 
+const gchar		*gsc_proposal_csymbol_get_prototype 	(GscProposal *prop);
 G_END_DECLS
 
 #endif

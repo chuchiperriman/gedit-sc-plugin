@@ -66,6 +66,7 @@ typedef struct
         gchar           *file;
         gchar           *language;
         gint            line;
+        gchar		*signature;
 } Symbol;
 
 GType gsc_provider_csymbols_get_type ();

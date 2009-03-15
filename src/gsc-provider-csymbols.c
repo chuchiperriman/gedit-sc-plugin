@@ -22,9 +22,10 @@
 #include <gtksourcecompletion/gsc-utils.h>
 #include "gsc-provider-csymbols.h"
 #include "gsc-proposal-symgoto.h"
+#include "gsc-proposal-csymbol.h"
 
-#define CTAGS_EXEC_PROJECT "sh -c \"ctags -n --fields=-k-f-s-t+K+l+n -f - %s/*.[ch]\""
-#define CTAGS_EXEC_FILE "sh -c \"ctags -n --fields=-k-f-s-t+K+l+n -f - %s\""
+#define CTAGS_EXEC_PROJECT "sh -c \"ctags -n --fields=-k-f-s-t+K+l+n+S -f - %s/*.[ch]\""
+#define CTAGS_EXEC_FILE "sh -c \"ctags -n --fields=-k-f-s-t+K+l+n+S -f - %s\""
 /*FIXME Poner global porque se usa también en proposal-symgoto*/
 #define INFO_TMPL "<b>File:</b> %s\n<b>Type:</b> %s\n<b>Line:</b> %d"
 
@@ -60,6 +61,7 @@ symbol_free (Symbol *symbol)
         if (symbol->file != NULL) g_free (symbol->file);
         if (symbol->type != NULL) g_free (symbol->type);
         if (symbol->language != NULL) g_free (symbol->language);
+        if (symbol->signature != NULL) g_free (symbol->signature);
         
         g_slice_free (Symbol, symbol);
 }
@@ -96,6 +98,13 @@ parse_line (gchar *line)
 	splits = g_strsplit (fields[5], ":", 0);
 	symbol->language = g_strdup (splits[1]);
 	g_strfreev (splits);
+	
+	if (fields[6] != NULL)
+	{
+		splits = g_strsplit (fields[6], ":", 0);
+		symbol->signature = g_strdup (splits[1]);
+		g_strfreev (splits);
+	}
 
 	g_strfreev (fields);
 

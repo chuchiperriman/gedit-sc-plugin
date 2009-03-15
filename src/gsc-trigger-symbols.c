@@ -52,8 +52,6 @@ static gboolean
 gsc_trigger_symbols_real_activate (GscTrigger* base)
 {
 	g_debug("Activating Symbols trigger");
-	GscTriggerSymbols *self = GSC_TRIGGER_SYMBOLS(base);
-
 	return TRUE;
 }
 
@@ -61,7 +59,6 @@ static gboolean
 gsc_trigger_symbols_real_deactivate (GscTrigger* base)
 {
 	g_debug("Deactivating Symbols trigger");
-	GscTriggerSymbols *self = GSC_TRIGGER_SYMBOLS(base);
 	return FALSE;
 }
 
@@ -135,7 +132,6 @@ insert_text_cb (GtkTextBuffer *textbuffer,
 {
 	g_return_if_fail (GSC_IS_TRIGGER_SYMBOLS (user_data));
 	
-	gint current_line;
 	gchar *filter, *temp;
 	GtkTextIter iter = *location;
 	
