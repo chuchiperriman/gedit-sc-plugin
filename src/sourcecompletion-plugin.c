@@ -77,57 +77,28 @@ get_view_data (SourcecompletionPlugin *self,
 	return NULL;
 }
 
-static ViewData*
-get_view_data_by_comp (SourcecompletionPlugin *self,
-		       GscCompletion *comp)
+static gint
+get_line (GtkTextView *view)
 {
-	GSList *l;
-	ViewData *vd;
-	
-	for (l = self->priv->view_data; l != NULL; l = g_slist_next (l))
-	{
-		vd = (ViewData*) l->data;
-		if (vd->comp == comp)
-			return vd;
-	}
-	return NULL;
-}
-
-static void
-calltip_show_cb (GscInfo *calltip,
-		 ViewData *vd)
-{
-	GtkTextView* view = GTK_TEXT_VIEW (gedit_window_get_active_view (vd->plugin->priv->gedit_window));
 	GtkTextBuffer *buffer = gtk_text_view_get_buffer (view);
 	GtkTextMark *mark = gtk_text_buffer_get_insert (buffer);
 	GtkTextIter iter;
 	gtk_text_buffer_get_iter_at_mark (buffer, &iter, mark);
-	vd->line = gtk_text_iter_get_line (&iter);
-	gsc_info_move_to_cursor (calltip, view);
-
-}
-
-static void
-calltip_hide_cb (GscInfo *calltip,
-		 SourcecompletionPlugin *self)
-{
-	GtkTextView* view = GTK_TEXT_VIEW (gedit_window_get_active_view (self->priv->gedit_window));
-	gsc_info_move_to_cursor (calltip, view);
+	return gtk_text_iter_get_line (&iter);
 }
 
 static gboolean 
 proposal_selected_cb (GscCompletion *comp,
 		      GscProposal *prop,
-		      SourcecompletionPlugin *self)
+		      ViewData *vd)
 {
-	g_debug ("sc: selected");
 	if (GSC_IS_PROPOSAL_CSYMBOL (prop))
 	{
-		ViewData *vd = get_view_data_by_comp (self, comp);
 		gsc_info_set_markup (vd->calltip,
 				     gsc_proposal_csymbol_get_prototype (prop));
+		vd->line = get_line (vd->view);
+		gsc_info_move_to_cursor (vd->calltip, vd->view);
 		gtk_widget_show (GTK_WIDGET (vd->calltip));
-		g_debug ("sc: selected csymbol");
 	}
 	return FALSE;
 }
@@ -135,21 +106,14 @@ proposal_selected_cb (GscCompletion *comp,
 static gboolean
 view_kp_cb (GtkTextView *view,
 	    GdkEventKey *event,
-	    SourcecompletionPlugin *self)
+	    ViewData *vd)
 {
-	g_debug ("aaaaaaaaa");
-	ViewData *vd = get_view_data (self, view);
 	if (GTK_WIDGET_VISIBLE (vd->calltip))
 	{
-		GtkTextBuffer *buffer = gtk_text_view_get_buffer (view);
-		GtkTextMark *mark = gtk_text_buffer_get_insert (buffer);
-		GtkTextIter iter;
-		gtk_text_buffer_get_iter_at_mark (buffer, &iter, mark);
-		g_debug ("%d - %d", gtk_text_iter_get_line (&iter), vd->line);
-		gboolean changed = gtk_text_iter_get_line (&iter) != vd->line;
+		gint line = get_line (view);
 		if (event->keyval == GDK_Escape ||
 		    event->keyval == GDK_parenright || 
-		    changed)
+		    line != vd->line)
 		{
 			gtk_widget_hide (GTK_WIDGET (vd->calltip));
 		}
@@ -220,10 +184,8 @@ impl_update_ui (GeditPlugin *plugin,
 			gsc_info_set_adjust_width (vd->calltip, TRUE, 500);
 			gsc_info_set_adjust_height (vd->calltip, TRUE, 300);
 		
-			vd->handler_c_psel = g_signal_connect_after(comp,"proposal-selected",G_CALLBACK(proposal_selected_cb),self);
-			vd->handler_v_kp = g_signal_connect_after(view,"key-release-event",G_CALLBACK(view_kp_cb),self);
-			g_signal_connect(vd->calltip, "show", G_CALLBACK(calltip_show_cb), vd);
-			g_signal_connect(vd->calltip, "hide", G_CALLBACK(calltip_hide_cb), self);
+			vd->handler_c_psel = g_signal_connect_after(comp,"proposal-selected",G_CALLBACK(proposal_selected_cb),vd);
+			vd->handler_v_kp = g_signal_connect_after(view,"key-release-event",G_CALLBACK(view_kp_cb),vd);
 			
 			self->priv->view_data = g_slist_append (self->priv->view_data, vd);
 

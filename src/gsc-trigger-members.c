@@ -20,10 +20,12 @@
 #include <glib/gprintf.h>
 #include <string.h>
 #include <ctype.h>
+#include <gtksourcecompletion/gsc-utils.h>
 #include "gsc-trigger-members.h"
 
 struct _GscTriggerMembersPrivate {
 	GscCompletion *completion;
+	gint init_offset;
 };
 
 #define GSC_TRIGGER_MEMBERS_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), GSC_TYPE_TRIGGER_MEMBERS, GscTriggerMembersPrivate))
@@ -45,26 +47,68 @@ static const gchar* gsc_trigger_members_real_get_name(GscTrigger *self)
 	return GSC_TRIGGER_MEMBERS_NAME;
 }
 
+static gboolean
+symbols_filter_func (GscProposal *proposal,
+		     gpointer user_data)
+{
+	const gchar *label = gsc_proposal_get_label (proposal);
+	const gchar *text = (const gchar*)user_data;
+	return g_str_has_prefix (label, text);
+}
+
+static void
+view_delete_cd (GtkTextBuffer *textbuffer,
+	       GtkTextIter   *start,
+	       GtkTextIter   *end,
+	       gpointer       user_data)
+{
+	GscTriggerMembers *self = GSC_TRIGGER_MEMBERS (user_data);
+	if (GTK_WIDGET_VISIBLE (self->priv->completion) && 
+	    gsc_completion_get_active_trigger(self->priv->completion) == GSC_TRIGGER (self))
+	{
+		gint offset = gtk_text_iter_get_line_offset (start);
+		if (offset < self->priv->init_offset)
+		{
+			gsc_completion_finish_completion (self->priv->completion);
+		}
+		else
+		{
+			gchar *temp;
+			GtkTextIter init_iter = *start;
+			gtk_text_iter_set_line_offset (&init_iter, self->priv->init_offset);
+			
+			/*Filter the current proposals */
+			temp = gtk_text_iter_get_text (&init_iter, start);
+			gsc_completion_filter_proposals (self->priv->completion,
+							 symbols_filter_func,
+							 temp);
+			g_free (temp);
+		}
+		
+	}
+}
+
 static void
 view_insert_text_cb (GtkTextBuffer *buffer,
-		     GtkTextIter *iter,
+		     GtkTextIter *location,
 		     gchar *text,
 		     gint len,
 		     gpointer user_data)
 {
-	GtkTextIter iter2 = *iter;
+	GtkTextIter iter = *location;
 	gchar *ch;
+	gchar *temp;
 	gboolean found = FALSE;
 	
 	GscTriggerMembers *self = GSC_TRIGGER_MEMBERS (user_data);
 	if (g_strcmp0 (text, ">") == 0)
 	{
-		if (gtk_text_iter_backward_chars (&iter2, 2) &&
-		    gtk_text_iter_backward_char (iter))
+		if (gtk_text_iter_backward_chars (&iter, 2) &&
+		    gtk_text_iter_backward_char (location))
 		{
 			ch = gtk_text_buffer_get_text (buffer,
-						       &iter2,
-						       iter,
+						       &iter,
+						       location,
 						       FALSE);
 			if (g_strcmp0 (ch, "-") == 0)
 				found = TRUE;
@@ -74,9 +118,31 @@ view_insert_text_cb (GtkTextBuffer *buffer,
 	{
 		found = TRUE;
 	}
+	else if (GTK_WIDGET_VISIBLE (self->priv->completion) && 
+		 gsc_completion_get_active_trigger(self->priv->completion) == GSC_TRIGGER (self))
+	{
+		if (gsc_char_is_separator (g_utf8_get_char (text)) ||
+		    gtk_text_iter_get_line_offset (location) < self->priv->init_offset)
+		{
+			gsc_completion_finish_completion (self->priv->completion);
+		}
+		else
+		{
+			GtkTextIter init_iter = *location;
+			gtk_text_iter_set_line_offset (&init_iter, self->priv->init_offset);
+			
+			/*Filter the current proposals */
+			temp = gtk_text_iter_get_text (&init_iter, location);
+			gsc_completion_filter_proposals (self->priv->completion,
+							 symbols_filter_func,
+							 temp);
+			g_free (temp);
+		}
+	}
 	
 	if (found)
 	{
+		self->priv->init_offset = gtk_text_iter_get_line_offset (location);
 		gsc_completion_trigger_event (self->priv->completion,
 					      GSC_TRIGGER (self));
 	}
@@ -89,12 +155,15 @@ gsc_trigger_members_real_activate (GscTrigger* base)
 	GscTriggerMembers *self = GSC_TRIGGER_MEMBERS(base);
 	
 	GtkTextView *view = gsc_completion_get_view (self->priv->completion);
-	
-	g_signal_connect_after (gtk_text_view_get_buffer (view),
+	GtkTextBuffer *buffer = gtk_text_view_get_buffer (view);
+	g_signal_connect_after (buffer,
 				"insert-text",
 				G_CALLBACK (view_insert_text_cb),
 				self);
-
+	g_signal_connect_after (buffer,
+				"delete-range",
+				G_CALLBACK (view_delete_cd),
+				self);
 	return TRUE;
 }
 
@@ -117,6 +186,7 @@ static void gsc_trigger_members_set_property (GObject * object, guint property_i
 static void gsc_trigger_members_init (GscTriggerMembers * self)
 {
 	self->priv = g_new0(GscTriggerMembersPrivate, 1);
+	self->priv->init_offset = -1;
 	g_debug("Init Members trigger");
 }
 

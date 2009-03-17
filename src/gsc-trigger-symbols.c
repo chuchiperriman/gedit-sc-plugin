@@ -116,7 +116,7 @@ GType gsc_trigger_symbols_get_type ()
 
 static gboolean
 symbols_filter_func (GscProposal *proposal,
-	     gpointer user_data)
+		     gpointer user_data)
 {
 	const gchar *label = gsc_proposal_get_label (proposal);
 	const gchar *text = (const gchar*)user_data;
@@ -139,7 +139,7 @@ insert_text_cb (GtkTextBuffer *textbuffer,
 	GscTriggerSymbols *self = GSC_TRIGGER_SYMBOLS (user_data);
 	
 	/*FIXME Configure these symbols*/
-	if (g_strcmp0 (text, ".") == 0)
+	if (g_strcmp0 (text, ",") == 0)
 	{
 		self->priv->init_offset = gtk_text_iter_get_line_offset (location);
 		gsc_completion_trigger_event (self->priv->comp,
