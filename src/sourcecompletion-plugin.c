@@ -30,6 +30,7 @@
 #include <gconf/gconf-client.h>
 #include <gtksourcecompletion/gsc-trigger.h>
 #include <gtksourcecompletion/gsc-trigger-customkey.h>
+#include <gtksourcecompletion/gsc-trigger-userrequest.h>
 #include <gtksourcecompletion/gsc-trigger-autowords.h>
 #include <gtksourcecompletion/gsc-info.h>
 
@@ -206,12 +207,10 @@ impl_update_ui (GeditPlugin *plugin,
 				gsc_completion_register_trigger(comp,GSC_TRIGGER(goto_trigger));
 				g_object_unref(goto_trigger);
 			}
-			GscTrigger *ur_trigger = gsc_completion_get_trigger(comp, USER_REQUEST_TRIGGER_NAME);
+			GscTrigger *ur_trigger = gsc_completion_get_trigger(comp, GSC_TRIGGER_USERREQUEST_NAME);
 			if (ur_trigger == NULL)
 			{
-				ur_trigger = GSC_TRIGGER (gsc_trigger_customkey_new(comp,
-							USER_REQUEST_TRIGGER_NAME, 
-							"<Control>space"));
+				ur_trigger = GSC_TRIGGER (gsc_trigger_userrequest_new(comp));
 				gsc_completion_register_trigger(comp,GSC_TRIGGER(ur_trigger));
 				g_object_unref(ur_trigger);
 			}
