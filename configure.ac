@@ -48,14 +48,8 @@ AM_GLIB_GNU_GETTEXT
 # ================================================================
 
 PKG_CHECK_MODULES(GEDIT, [
-	glib-2.0 >= 2.8.0
-	gtk+-2.0 >= 2.8.0
-	gtksourceview-2.0 >= 2.0.0
+	gtksourceview-2.0 >= 2.6.0
 	gedit-2.20 >= 2.20.0
-	libglade-2.0 >= 2.4.0
-	gnome-vfs-2.0 >= 2.13.4
-	gtksourcecompletion-2.0 >= 0.7.0
-	gconf-2.0
 ])
 GEDIT_LIBS="${GEDIT_LIBS}"
 AC_SUBST(GEDIT_LIBS)
