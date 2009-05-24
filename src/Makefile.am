@@ -13,12 +13,16 @@ AM_CFLAGS =\
 
 plugin_LTLIBRARIES = libsourcecompletion.la
 
-libsourcecompletion_la_SOURCES = \
+libsourcecompletion_la_SOURCES = 	\
+	sc-symbol.h			\
+	sc-symbol.c			\
 	sc-ctags.h			\
 	sc-ctags.c			\
+	sc-language-manager.h		\
+	sc-language-manager.c		\
 	sc-provider-csymbols.h		\
 	sc-provider-csymbols.c		\
-	sc-plugin.h	\
+	sc-plugin.h			\
 	sc-plugin.c
 
 libsourcecompletion_la_LDFLAGS = $(PLUGIN_LIBTOOL_FLAGS)
