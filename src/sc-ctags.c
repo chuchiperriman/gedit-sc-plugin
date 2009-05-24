@@ -26,11 +26,11 @@
 void
 sc_ctags_symbol_free (Symbol *symbol)
 {
-        if (symbol->name != NULL) g_free (symbol->name);
-        if (symbol->file != NULL) g_free (symbol->file);
-        if (symbol->type != NULL) g_free (symbol->type);
-        if (symbol->language != NULL) g_free (symbol->language);
-        if (symbol->signature != NULL) g_free (symbol->signature);
+        if (symbol->name) g_free (symbol->name);
+        if (symbol->file) g_free (symbol->file);
+        if (symbol->type) g_free (symbol->type);
+        if (symbol->language) g_free (symbol->language);
+        if (symbol->signature) g_free (symbol->signature);
         
         g_slice_free (Symbol, symbol);
 }
@@ -53,7 +53,7 @@ sc_ctags_symbol_new_from_line (gchar *line)
 	symbol = g_slice_new0 (Symbol);
 
 	fields = g_strsplit (line, "\t", 0);
-	if (fields[0] == NULL) return NULL;
+	if (!fields[0]) return NULL;
 
 	symbol->name = g_strdup (fields[0]);
 
@@ -68,7 +68,7 @@ sc_ctags_symbol_new_from_line (gchar *line)
 	symbol->language = g_strdup (splits[1]);
 	g_strfreev (splits);
 	
-	if (fields[6] != NULL)
+	if (fields[6])
 	{
 		splits = g_strsplit (fields[6], ":", 0);
 		symbol->signature = g_strdup (splits[1]);
