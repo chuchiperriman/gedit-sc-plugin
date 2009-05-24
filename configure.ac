@@ -81,6 +81,7 @@ AC_SUBST(PLUGIN_LIBTOOL_FLAGS)
 AC_CONFIG_FILES([
 Makefile
 src/Makefile
+tests/Makefile
 po/Makefile.in
 ])
 

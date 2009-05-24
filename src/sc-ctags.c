@@ -44,9 +44,9 @@ sc_ctags_symbol_free (Symbol *symbol)
 Symbol*
 sc_ctags_symbol_new_from_line (gchar *line)
 {
-	Symbol                  *symbol;
-	gchar                   **splits;
-	gchar                   **fields;
+	Symbol	*symbol;
+	gchar	**splits;
+	gchar	**fields;
 
 	/* name, file, ex search, type, line:n  language:x */
 
@@ -86,9 +86,9 @@ sc_ctags_symbol_new_from_line (gchar *line)
 gchar *
 sc_ctags_exec (const gchar *exec, const gchar *filename)
 {
-	gchar                   *output;       
-	gchar                   *command;       
-	GError                  *error = NULL;  
+	gchar	*output;       
+	gchar	*command;       
+	GError	*error = NULL;  
 
 	/* build ctags command */
 
@@ -110,21 +110,18 @@ sc_ctags_exec (const gchar *exec, const gchar *filename)
 }
 
 GList* 
-sc_ctags_exec_get_symbols	(const gchar *exec, 
-				 const gchar *filename)
+sc_ctags_get_symbols_from_string	(const gchar *ctags_output)
 {
-	gchar		*output =NULL;
-	gchar		**lines = NULL;
-	gint		i;
-	GList		*list = NULL;
-	Symbol		*symbol;
+	gchar	**lines = NULL;
+	gint	i;
+	GList	*list = NULL;
+	Symbol	*symbol;
 	
-	output = sc_ctags_exec (exec, filename);
 	
-	if (!output)
+	if (!ctags_output)
 		return NULL;
 		
-	lines = g_strsplit (output, "\n", 0);
+	lines = g_strsplit (ctags_output, "\n", 0);
 	for (i=0; lines[i]; i++)
 	{
 		symbol = sc_ctags_symbol_new_from_line (lines[i]);
@@ -134,6 +131,24 @@ sc_ctags_exec_get_symbols	(const gchar *exec,
 		}
 	}
 	g_strfreev (lines);
+	
+	return list;
+}
+
+GList* 
+sc_ctags_exec_get_symbols	(const gchar *exec, 
+				 const gchar *filename)
+{
+	gchar	*output =NULL;
+	GList	*list = NULL;
+	
+	output = sc_ctags_exec (exec, filename);
+	
+	if (!output)
+		return NULL;
+	
+	list = sc_ctags_get_symbols_from_string (output);
+	
 	g_free (output);
 	
 	return list;
