@@ -1,4 +1,4 @@
- /* gsc-trigger-members.c - Type here a short description of your trigger
+ /* gtksourcecompletiontrigger-members.c - Type here a short description of your trigger
  *
  * Copyright (C) 2009 - perriman
  *
@@ -20,38 +20,38 @@
 #include <glib/gprintf.h>
 #include <string.h>
 #include <ctype.h>
-#include <gtksourcecompletion/gsc-utils.h>
-#include "gsc-trigger-members.h"
+#include <gtksourceview/gtksourcecompletionutils.h>
+#include "gtksourcecompletiontrigger-members.h"
 
-struct _GscTriggerMembersPrivate {
-	GscCompletion *completion;
+struct _GtkSourceCompletionTriggerMembersPrivate {
+	GtkSourceCompletionCompletion *completion;
 	gint init_offset;
 };
 
-#define GSC_TRIGGER_MEMBERS_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), GSC_TYPE_TRIGGER_MEMBERS, GscTriggerMembersPrivate))
+#define SC_TRIGGER_MEMBERS_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), SC_TYPE_TRIGGER_MEMBERS, GtkSourceCompletionTriggerMembersPrivate))
 
 enum  {
-	GSC_TRIGGER_MEMBERS_DUMMY_PROPERTY,
+	SC_TRIGGER_MEMBERS_DUMMY_PROPERTY,
 };
 
-static const gchar* gsc_trigger_members_real_get_name(GscTrigger* base);
-static gboolean gsc_trigger_members_real_activate (GscTrigger* base);
-static gboolean gsc_trigger_members_real_deactivate (GscTrigger* base);
+static const gchar* gtk_source_completion_trigger_members_real_get_name(GtkSourceCompletionTrigger* base);
+static gboolean gtk_source_completion_trigger_members_real_activate (GtkSourceCompletionTrigger* base);
+static gboolean gtk_source_completion_trigger_members_real_deactivate (GtkSourceCompletionTrigger* base);
 
-static gpointer gsc_trigger_members_parent_class = NULL;
-static GscTriggerIface* gsc_trigger_members_parent_iface = NULL;
+static gpointer gtk_source_completion_trigger_members_parent_class = NULL;
+static GtkSourceCompletionTriggerIface* gtk_source_completion_trigger_members_parent_iface = NULL;
 
 
-static const gchar* gsc_trigger_members_real_get_name(GscTrigger *self)
+static const gchar* gtk_source_completion_trigger_members_real_get_name(GtkSourceCompletionTrigger *self)
 {
-	return GSC_TRIGGER_MEMBERS_NAME;
+	return SC_TRIGGER_MEMBERS_NAME;
 }
 
 static gboolean
-symbols_filter_func (GscProposal *proposal,
+symbols_filter_func (GtkSourceCompletionProposal *proposal,
 		     gpointer user_data)
 {
-	const gchar *label = gsc_proposal_get_label (proposal);
+	const gchar *label = gtk_source_completion_proposal_get_label (proposal);
 	const gchar *text = (const gchar*)user_data;
 	return g_str_has_prefix (label, text);
 }
@@ -62,14 +62,14 @@ view_delete_cd (GtkTextBuffer *textbuffer,
 	       GtkTextIter   *end,
 	       gpointer       user_data)
 {
-	GscTriggerMembers *self = GSC_TRIGGER_MEMBERS (user_data);
+	GtkSourceCompletionTriggerMembers *self = SC_TRIGGER_MEMBERS (user_data);
 	if (GTK_WIDGET_VISIBLE (self->priv->completion) && 
-	    gsc_completion_get_active_trigger(self->priv->completion) == GSC_TRIGGER (self))
+	    gtk_source_completion_completion_get_active_trigger(self->priv->completion) == SC_TRIGGER (self))
 	{
 		gint offset = gtk_text_iter_get_line_offset (start);
 		if (offset < self->priv->init_offset)
 		{
-			gsc_completion_finish_completion (self->priv->completion);
+			gtk_source_completion_completion_finish_completion (self->priv->completion);
 		}
 		else
 		{
@@ -79,7 +79,7 @@ view_delete_cd (GtkTextBuffer *textbuffer,
 			
 			/*Filter the current proposals */
 			temp = gtk_text_iter_get_text (&init_iter, start);
-			gsc_completion_filter_proposals (self->priv->completion,
+			gtk_source_completion_completion_filter_proposals (self->priv->completion,
 							 symbols_filter_func,
 							 temp);
 			g_free (temp);
@@ -100,7 +100,7 @@ view_insert_text_cb (GtkTextBuffer *buffer,
 	gchar *temp;
 	gboolean found = FALSE;
 	
-	GscTriggerMembers *self = GSC_TRIGGER_MEMBERS (user_data);
+	GtkSourceCompletionTriggerMembers *self = SC_TRIGGER_MEMBERS (user_data);
 	if (g_strcmp0 (text, ">") == 0)
 	{
 		if (gtk_text_iter_backward_chars (&iter, 2) &&
@@ -119,12 +119,12 @@ view_insert_text_cb (GtkTextBuffer *buffer,
 		found = TRUE;
 	}
 	else if (GTK_WIDGET_VISIBLE (self->priv->completion) && 
-		 gsc_completion_get_active_trigger(self->priv->completion) == GSC_TRIGGER (self))
+		 gtk_source_completion_completion_get_active_trigger(self->priv->completion) == SC_TRIGGER (self))
 	{
-		if (gsc_char_is_separator (g_utf8_get_char (text)) ||
+		if (gtk_source_completion_char_is_separator (g_utf8_get_char (text)) ||
 		    gtk_text_iter_get_line_offset (location) < self->priv->init_offset)
 		{
-			gsc_completion_finish_completion (self->priv->completion);
+			gtk_source_completion_completion_finish_completion (self->priv->completion);
 		}
 		else
 		{
@@ -133,7 +133,7 @@ view_insert_text_cb (GtkTextBuffer *buffer,
 			
 			/*Filter the current proposals */
 			temp = gtk_text_iter_get_text (&init_iter, location);
-			gsc_completion_filter_proposals (self->priv->completion,
+			gtk_source_completion_completion_filter_proposals (self->priv->completion,
 							 symbols_filter_func,
 							 temp);
 			g_free (temp);
@@ -143,18 +143,18 @@ view_insert_text_cb (GtkTextBuffer *buffer,
 	if (found)
 	{
 		self->priv->init_offset = gtk_text_iter_get_line_offset (location);
-		gsc_completion_trigger_event (self->priv->completion,
-					      GSC_TRIGGER (self));
+		gtk_source_completion_completion_trigger_event (self->priv->completion,
+					      SC_TRIGGER (self));
 	}
 }
 
 static gboolean
-gsc_trigger_members_real_activate (GscTrigger* base)
+gtk_source_completion_trigger_members_real_activate (GtkSourceCompletionTrigger* base)
 {
 	g_debug("Activating Members trigger");
-	GscTriggerMembers *self = GSC_TRIGGER_MEMBERS(base);
+	GtkSourceCompletionTriggerMembers *self = SC_TRIGGER_MEMBERS(base);
 	
-	GtkTextView *view = gsc_completion_get_view (self->priv->completion);
+	GtkTextView *view = gtk_source_completion_completion_get_view (self->priv->completion);
 	GtkTextBuffer *buffer = gtk_text_view_get_buffer (view);
 	g_signal_connect_after (buffer,
 				"insert-text",
@@ -168,74 +168,74 @@ gsc_trigger_members_real_activate (GscTrigger* base)
 }
 
 static gboolean
-gsc_trigger_members_real_deactivate (GscTrigger* base)
+gtk_source_completion_trigger_members_real_deactivate (GtkSourceCompletionTrigger* base)
 {
 	g_debug("Deactivating Members trigger");
 	return FALSE;
 }
 
-static void gsc_trigger_members_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec)
+static void gtk_source_completion_trigger_members_get_property (GObject * object, guint property_id, GValue * value, GParamSpec * pspec)
 {
 }
 
 
-static void gsc_trigger_members_set_property (GObject * object, guint property_id, const GValue * value, GParamSpec * pspec)
+static void gtk_source_completion_trigger_members_set_property (GObject * object, guint property_id, const GValue * value, GParamSpec * pspec)
 {
 }
 
-static void gsc_trigger_members_init (GscTriggerMembers * self)
+static void gtk_source_completion_trigger_members_init (GtkSourceCompletionTriggerMembers * self)
 {
-	self->priv = g_new0(GscTriggerMembersPrivate, 1);
+	self->priv = g_new0(GtkSourceCompletionTriggerMembersPrivate, 1);
 	self->priv->init_offset = -1;
 	g_debug("Init Members trigger");
 }
 
-static void gsc_trigger_members_finalize(GObject *object)
+static void gtk_source_completion_trigger_members_finalize(GObject *object)
 {
 	g_debug("Finish Members trigger");
-	GscTriggerMembers *self;
-	self = GSC_TRIGGER_MEMBERS(object);
-	G_OBJECT_CLASS(gsc_trigger_members_parent_class)->finalize(object);
+	GtkSourceCompletionTriggerMembers *self;
+	self = SC_TRIGGER_MEMBERS(object);
+	G_OBJECT_CLASS(gtk_source_completion_trigger_members_parent_class)->finalize(object);
 }
 
-static void gsc_trigger_members_class_init (GscTriggerMembersClass * klass)
+static void gtk_source_completion_trigger_members_class_init (GtkSourceCompletionTriggerMembersClass * klass)
 {
-	gsc_trigger_members_parent_class = g_type_class_peek_parent (klass);
-	G_OBJECT_CLASS (klass)->get_property = gsc_trigger_members_get_property;
-	G_OBJECT_CLASS (klass)->set_property = gsc_trigger_members_set_property;
-	G_OBJECT_CLASS (klass)->finalize = gsc_trigger_members_finalize;
+	gtk_source_completion_trigger_members_parent_class = g_type_class_peek_parent (klass);
+	G_OBJECT_CLASS (klass)->get_property = gtk_source_completion_trigger_members_get_property;
+	G_OBJECT_CLASS (klass)->set_property = gtk_source_completion_trigger_members_set_property;
+	G_OBJECT_CLASS (klass)->finalize = gtk_source_completion_trigger_members_finalize;
 }
 
-static void gsc_trigger_members_interface_init (GscTriggerIface * iface)
+static void gtk_source_completion_trigger_members_interface_init (GtkSourceCompletionTriggerIface * iface)
 {
-	gsc_trigger_members_parent_iface = g_type_interface_peek_parent (iface);
-	iface->get_name = gsc_trigger_members_real_get_name;
-	iface->activate = gsc_trigger_members_real_activate;
-	iface->deactivate = gsc_trigger_members_real_deactivate;
+	gtk_source_completion_trigger_members_parent_iface = g_type_interface_peek_parent (iface);
+	iface->get_name = gtk_source_completion_trigger_members_real_get_name;
+	iface->activate = gtk_source_completion_trigger_members_real_activate;
+	iface->deactivate = gtk_source_completion_trigger_members_real_deactivate;
 }
 
-GType gsc_trigger_members_get_type ()
+GType gtk_source_completion_trigger_members_get_type ()
 {
 	static GType g_define_type_id = 0;
 	if (G_UNLIKELY (g_define_type_id == 0)) {
-		static const GTypeInfo g_define_type_info = { sizeof (GscTriggerMembersClass), (GBaseInitFunc) NULL, (GBaseFinalizeFunc) NULL, (GClassInitFunc) gsc_trigger_members_class_init, (GClassFinalizeFunc) NULL, NULL, sizeof (GscTriggerMembers), 0, (GInstanceInitFunc) gsc_trigger_members_init };
-		g_define_type_id = g_type_register_static (G_TYPE_OBJECT, "GscTriggerMembers", &g_define_type_info, 0);
-		static const GInterfaceInfo gsc_trigger_members_info = { (GInterfaceInitFunc) gsc_trigger_members_interface_init, (GInterfaceFinalizeFunc) NULL, NULL};
-		g_type_add_interface_static (g_define_type_id, GSC_TYPE_TRIGGER, &gsc_trigger_members_info);
+		static const GTypeInfo g_define_type_info = { sizeof (GtkSourceCompletionTriggerMembersClass), (GBaseInitFunc) NULL, (GBaseFinalizeFunc) NULL, (GClassInitFunc) gtk_source_completion_trigger_members_class_init, (GClassFinalizeFunc) NULL, NULL, sizeof (GtkSourceCompletionTriggerMembers), 0, (GInstanceInitFunc) gtk_source_completion_trigger_members_init };
+		g_define_type_id = g_type_register_static (G_TYPE_OBJECT, "GtkSourceCompletionTriggerMembers", &g_define_type_info, 0);
+		static const GInterfaceInfo gtk_source_completion_trigger_members_info = { (GInterfaceInitFunc) gtk_source_completion_trigger_members_interface_init, (GInterfaceFinalizeFunc) NULL, NULL};
+		g_type_add_interface_static (g_define_type_id, SC_TYPE_TRIGGER, &gtk_source_completion_trigger_members_info);
 	}
 	return g_define_type_id;
 }
 
 /**
- * gsc_trigger_members_new:
+ * gtk_source_completion_trigger_members_new:
  *
- * Returns The new #GscTriggerMembers
+ * Returns The new #GtkSourceCompletionTriggerMembers
  *
  */
-GscTriggerMembers*
-gsc_trigger_members_new(GscCompletion *completion)
+GtkSourceCompletionTriggerMembers*
+gtk_source_completion_trigger_members_new(GtkSourceCompletionCompletion *completion)
 {
-	GscTriggerMembers *self = GSC_TRIGGER_MEMBERS (g_object_new (GSC_TYPE_TRIGGER_MEMBERS, NULL));
+	GtkSourceCompletionTriggerMembers *self = SC_TRIGGER_MEMBERS (g_object_new (SC_TYPE_TRIGGER_MEMBERS, NULL));
 	self->priv->completion = completion;
 	
 	return self;

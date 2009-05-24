@@ -1,4 +1,4 @@
- /* gsc-proposal-symgoto.c - Type here a short description of your plugin
+ /* gtksourcecompletionproposal-symgoto.c - Type here a short description of your plugin
  *
  * Copyright (C) 2009 - perriman
  *
@@ -17,28 +17,28 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#include "gsc-proposal-symgoto.h"
+#include "gtksourcecompletionproposal-symgoto.h"
 
-struct _GscProposalSymgotoPrivate
+struct _GtkSourceCompletionProposalSymgotoPrivate
 {
 	GeditWindow	*gedit_win;
 	gchar 		*file;
 	gint		line;
 };
 
-G_DEFINE_TYPE(GscProposalSymgoto, gsc_proposal_symgoto, GSC_TYPE_PROPOSAL);
+G_DEFINE_TYPE(GtkSourceCompletionProposalSymgoto, gtk_source_completion_proposal_symgoto, SC_TYPE_PROPOSAL);
 
-#define GSC_PROPOSAL_SYMGOTO_GET_PRIVATE(object)(G_TYPE_INSTANCE_GET_PRIVATE ((object), GSC_TYPE_PROPOSAL_SYMGOTO, GscProposalSymgotoPrivate))
+#define SC_PROPOSAL_SYMGOTO_GET_PRIVATE(object)(G_TYPE_INSTANCE_GET_PRIVATE ((object), SC_TYPE_PROPOSAL_SYMGOTO, GtkSourceCompletionProposalSymgotoPrivate))
 
 /*FIXME Poner global porque se usa también en proposal-symgoto*/
 #define INFO_TMPL "<b>File:</b> %s\n<b>Type:</b> %s\n<b>Line:</b> %d"
  
 static gboolean
-gsc_proposal_symgoto_apply(GscProposal* proposal, GtkTextView *view)
+gtk_source_completion_proposal_symgoto_apply(GtkSourceCompletionProposal* proposal, GtkTextView *view)
 {
 	gchar *uri;
 	gchar *dirname;
-	GscProposalSymgoto *self = GSC_PROPOSAL_SYMGOTO (proposal);
+	GtkSourceCompletionProposalSymgoto *self = SC_PROPOSAL_SYMGOTO (proposal);
 	GeditDocument *doc;
 	
 	doc = gedit_window_get_active_document(self->priv->gedit_win);
@@ -64,34 +64,34 @@ gsc_proposal_symgoto_apply(GscProposal* proposal, GtkTextView *view)
 }
 
 static void
-gsc_proposal_symgoto_finalize (GObject *object)
+gtk_source_completion_proposal_symgoto_finalize (GObject *object)
 {
-	GscProposalSymgoto *self = GSC_PROPOSAL_SYMGOTO (object);
+	GtkSourceCompletionProposalSymgoto *self = SC_PROPOSAL_SYMGOTO (object);
 	g_free (self->priv->file);
-	G_OBJECT_CLASS (gsc_proposal_symgoto_parent_class)->finalize (object);
+	G_OBJECT_CLASS (gtk_source_completion_proposal_symgoto_parent_class)->finalize (object);
 }
 
 static void
-gsc_proposal_symgoto_class_init (GscProposalSymgotoClass *klass)
+gtk_source_completion_proposal_symgoto_class_init (GtkSourceCompletionProposalSymgotoClass *klass)
 {
 	GObjectClass* object_class = G_OBJECT_CLASS (klass);
-	g_type_class_add_private (object_class, sizeof(GscProposalSymgotoPrivate));
+	g_type_class_add_private (object_class, sizeof(GtkSourceCompletionProposalSymgotoPrivate));
 	
-	GscProposalClass *proposal_class = GSC_PROPOSAL_CLASS (klass);
-	proposal_class->apply = gsc_proposal_symgoto_apply;
-	object_class->finalize = gsc_proposal_symgoto_finalize;
+	GtkSourceCompletionProposalClass *proposal_class = SC_PROPOSAL_CLASS (klass);
+	proposal_class->apply = gtk_source_completion_proposal_symgoto_apply;
+	object_class->finalize = gtk_source_completion_proposal_symgoto_finalize;
 }
 
 static void
-gsc_proposal_symgoto_init (GscProposalSymgoto *self)
+gtk_source_completion_proposal_symgoto_init (GtkSourceCompletionProposalSymgoto *self)
 {
-	self->priv = GSC_PROPOSAL_SYMGOTO_GET_PRIVATE (self);
+	self->priv = SC_PROPOSAL_SYMGOTO_GET_PRIVATE (self);
 	self->priv->gedit_win = NULL;
 	self->priv->file = NULL;
 }
 
-GscProposal*
-gsc_proposal_symgoto_new (GeditWindow *window,
+GtkSourceCompletionProposal*
+gtk_source_completion_proposal_symgoto_new (GeditWindow *window,
 			  Symbol *symbol)
 {
 	gchar		*info;
@@ -103,7 +103,7 @@ gsc_proposal_symgoto_new (GeditWindow *window,
 				symbol->type,
 				symbol->line);
 							
-	GscProposalSymgoto *self = GSC_PROPOSAL_SYMGOTO (g_object_new (GSC_TYPE_PROPOSAL_SYMGOTO, 
+	GtkSourceCompletionProposalSymgoto *self = SC_PROPOSAL_SYMGOTO (g_object_new (SC_TYPE_PROPOSAL_SYMGOTO, 
 								 "label", symbol->name,
 								 "info", info,
 								 "icon", NULL,
@@ -112,7 +112,7 @@ gsc_proposal_symgoto_new (GeditWindow *window,
 	self->priv->gedit_win = window;
 	self->priv->file = g_strdup (symbol->file);
 	self->priv->line = symbol->line;
-	return GSC_PROPOSAL (self);
+	return SC_PROPOSAL (self);
 }
 
 

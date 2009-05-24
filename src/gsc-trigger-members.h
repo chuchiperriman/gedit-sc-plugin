@@ -1,5 +1,5 @@
 /*
- * gsc-trigger-members.h - Type here a short description of your trigger
+ * gtksourcecompletiontrigger-members.h - Type here a short description of your trigger
  *
  * Copyright (C) 2009 - perriman
  *
@@ -23,37 +23,37 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include <gtksourcecompletion/gsc-trigger.h>
-#include <gtksourcecompletion/gsc-completion.h>
+#include <gtksourceview/gtksourcecompletiontrigger.h>
+#include <gtksourceview/gtksourcecompletioncompletion.h>
 
 G_BEGIN_DECLS
 
-#define GSC_TYPE_TRIGGER_MEMBERS (gsc_trigger_members_get_type ())
-#define GSC_TRIGGER_MEMBERS(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), GSC_TYPE_TRIGGER_MEMBERS, GscTriggerMembers))
-#define GSC_TRIGGER_MEMBERS_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), GSC_TYPE_TRIGGER_MEMBERS, GscTriggerMembersClass))
-#define GSC_IS_TRIGGER_MEMBERS(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GSC_TYPE_TRIGGER_MEMBERS))
-#define GSC_IS_TRIGGER_MEMBERS_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GSC_TYPE_TRIGGER_MEMBERS))
-#define GSC_TRIGGER_MEMBERS_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), GSC_TYPE_TRIGGER_MEMBERS, GscTriggerMembersClass))
+#define SC_TYPE_TRIGGER_MEMBERS (gtk_source_completion_trigger_members_get_type ())
+#define SC_TRIGGER_MEMBERS(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), SC_TYPE_TRIGGER_MEMBERS, GtkSourceCompletionTriggerMembers))
+#define SC_TRIGGER_MEMBERS_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), SC_TYPE_TRIGGER_MEMBERS, GtkSourceCompletionTriggerMembersClass))
+#define SC_IS_TRIGGER_MEMBERS(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), SC_TYPE_TRIGGER_MEMBERS))
+#define SC_IS_TRIGGER_MEMBERS_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), SC_TYPE_TRIGGER_MEMBERS))
+#define SC_TRIGGER_MEMBERS_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), SC_TYPE_TRIGGER_MEMBERS, GtkSourceCompletionTriggerMembersClass))
 
-#define GSC_TRIGGER_MEMBERS_NAME "GscTriggerMembers"
+#define SC_TRIGGER_MEMBERS_NAME "GtkSourceCompletionTriggerMembers"
 
-typedef struct _GscTriggerMembers GscTriggerMembers;
-typedef struct _GscTriggerMembersClass GscTriggerMembersClass;
-typedef struct _GscTriggerMembersPrivate GscTriggerMembersPrivate;
+typedef struct _GtkSourceCompletionTriggerMembers GtkSourceCompletionTriggerMembers;
+typedef struct _GtkSourceCompletionTriggerMembersClass GtkSourceCompletionTriggerMembersClass;
+typedef struct _GtkSourceCompletionTriggerMembersPrivate GtkSourceCompletionTriggerMembersPrivate;
 
-struct _GscTriggerMembers {
+struct _GtkSourceCompletionTriggerMembers {
 	GObject parent;
-	GscTriggerMembersPrivate *priv;	
+	GtkSourceCompletionTriggerMembersPrivate *priv;	
 };
 
-struct _GscTriggerMembersClass {
+struct _GtkSourceCompletionTriggerMembersClass {
 	GObjectClass parent;
 };
 
-GscTriggerMembers* 
-gsc_trigger_members_new(GscCompletion *completion);
+GtkSourceCompletionTriggerMembers* 
+gtk_source_completion_trigger_members_new(GtkSourceCompletionCompletion *completion);
 
-GType gsc_trigger_members_get_type ();
+GType gtk_source_completion_trigger_members_get_type ();
 
 G_END_DECLS
 

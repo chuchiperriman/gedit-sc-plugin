@@ -1,5 +1,5 @@
 /*
- * gsc-proposal-symgoto.h - Type here a short description of your plugin
+ * gtksourcecompletionproposal-symgoto.h - Type here a short description of your plugin
  *
  * Copyright (C) 2009 - perriman
  *
@@ -18,40 +18,40 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-#ifndef __GSC_PROPOSAL_SYMGOTO_H__
-#define __GSC_PROPOSAL_SYMGOTO_H__
+#ifndef __SC_PROPOSAL_SYMGOTO_H__
+#define __SC_PROPOSAL_SYMGOTO_H__
 
 #include <glib.h>
 #include <glib-object.h>
 #include <gedit/gedit-plugin.h>
-#include <gtksourcecompletion/gsc-proposal.h>
-#include "gsc-provider-csymbols.h"
+#include <gtksourceview/gtksourcecompletionproposal.h>
+#include "gtksourcecompletionprovider-csymbols.h"
 
 G_BEGIN_DECLS
 
-#define GSC_TYPE_PROPOSAL_SYMGOTO (gsc_proposal_symgoto_get_type ())
-#define GSC_PROPOSAL_SYMGOTO(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), GSC_TYPE_PROPOSAL_SYMGOTO, GscProposalSymgoto))
-#define GSC_PROPOSAL_SYMGOTO_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), GSC_TYPE_PROPOSAL_SYMGOTO, GscProposalSymgotoClass))
-#define GSC_IS_PROPOSAL_SYMGOTO(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GSC_TYPE_PROPOSAL_SYMGOTO))
-#define GSC_IS_PROPOSAL_SYMGOTO_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GSC_TYPE_PROPOSAL_SYMGOTO))
-#define GSC_PROPOSAL_SYMGOTO_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), GSC_TYPE_PROPOSAL_SYMGOTO, GscProposalSymgotoClass))
+#define SC_TYPE_PROPOSAL_SYMGOTO (gtk_source_completion_proposal_symgoto_get_type ())
+#define SC_PROPOSAL_SYMGOTO(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), SC_TYPE_PROPOSAL_SYMGOTO, GtkSourceCompletionProposalSymgoto))
+#define SC_PROPOSAL_SYMGOTO_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), SC_TYPE_PROPOSAL_SYMGOTO, GtkSourceCompletionProposalSymgotoClass))
+#define SC_IS_PROPOSAL_SYMGOTO(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), SC_TYPE_PROPOSAL_SYMGOTO))
+#define SC_IS_PROPOSAL_SYMGOTO_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), SC_TYPE_PROPOSAL_SYMGOTO))
+#define SC_PROPOSAL_SYMGOTO_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), SC_TYPE_PROPOSAL_SYMGOTO, GtkSourceCompletionProposalSymgotoClass))
 
-typedef struct _GscProposalSymgoto GscProposalSymgoto;
-typedef struct _GscProposalSymgotoClass GscProposalSymgotoClass;
-typedef struct _GscProposalSymgotoPrivate GscProposalSymgotoPrivate;
+typedef struct _GtkSourceCompletionProposalSymgoto GtkSourceCompletionProposalSymgoto;
+typedef struct _GtkSourceCompletionProposalSymgotoClass GtkSourceCompletionProposalSymgotoClass;
+typedef struct _GtkSourceCompletionProposalSymgotoPrivate GtkSourceCompletionProposalSymgotoPrivate;
 
-struct _GscProposalSymgoto {
-	GscProposal parent;
-	GscProposalSymgotoPrivate *priv;	
+struct _GtkSourceCompletionProposalSymgoto {
+	GtkSourceCompletionProposal parent;
+	GtkSourceCompletionProposalSymgotoPrivate *priv;	
 };
 
-struct _GscProposalSymgotoClass {
-	GscProposalClass parent;
+struct _GtkSourceCompletionProposalSymgotoClass {
+	GtkSourceCompletionProposalClass parent;
 };
 
-GType			 gsc_proposal_symgoto_get_type	();
+GType			 gtk_source_completion_proposal_symgoto_get_type	();
 
-GscProposal		*gsc_proposal_symgoto_new	(GeditWindow *window,
+GtkSourceCompletionProposal		*gtk_source_completion_proposal_symgoto_new	(GeditWindow *window,
 							 Symbol *symbol);
 
 G_END_DECLS

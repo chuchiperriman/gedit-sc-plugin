@@ -1,5 +1,5 @@
 /*
- * gsc-trigger-symbols.h - Type here a short description of your trigger
+ * gtksourcecompletiontrigger-symbols.h - Type here a short description of your trigger
  *
  * Copyright (C) 2009 - perriman
  *
@@ -23,37 +23,37 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include <gtksourcecompletion/gsc-trigger.h>
-#include <gtksourcecompletion/gsc-completion.h>
+#include <gtksourceview/gtksourcecompletiontrigger.h>
+#include <gtksourceview/gtksourcecompletioncompletion.h>
 
 G_BEGIN_DECLS
 
-#define GSC_TYPE_TRIGGER_SYMBOLS (gsc_trigger_symbols_get_type ())
-#define GSC_TRIGGER_SYMBOLS(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), GSC_TYPE_TRIGGER_SYMBOLS, GscTriggerSymbols))
-#define GSC_TRIGGER_SYMBOLS_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), GSC_TYPE_TRIGGER_SYMBOLS, GscTriggerSymbolsClass))
-#define GSC_IS_TRIGGER_SYMBOLS(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GSC_TYPE_TRIGGER_SYMBOLS))
-#define GSC_IS_TRIGGER_SYMBOLS_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GSC_TYPE_TRIGGER_SYMBOLS))
-#define GSC_TRIGGER_SYMBOLS_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), GSC_TYPE_TRIGGER_SYMBOLS, GscTriggerSymbolsClass))
+#define SC_TYPE_TRIGGER_SYMBOLS (gtk_source_completion_trigger_symbols_get_type ())
+#define SC_TRIGGER_SYMBOLS(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), SC_TYPE_TRIGGER_SYMBOLS, GtkSourceCompletionTriggerSymbols))
+#define SC_TRIGGER_SYMBOLS_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), SC_TYPE_TRIGGER_SYMBOLS, GtkSourceCompletionTriggerSymbolsClass))
+#define SC_IS_TRIGGER_SYMBOLS(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), SC_TYPE_TRIGGER_SYMBOLS))
+#define SC_IS_TRIGGER_SYMBOLS_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), SC_TYPE_TRIGGER_SYMBOLS))
+#define SC_TRIGGER_SYMBOLS_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), SC_TYPE_TRIGGER_SYMBOLS, GtkSourceCompletionTriggerSymbolsClass))
 
-#define GSC_TRIGGER_SYMBOLS_NAME "GscTriggerSymbols"
+#define SC_TRIGGER_SYMBOLS_NAME "GtkSourceCompletionTriggerSymbols"
 
-typedef struct _GscTriggerSymbols GscTriggerSymbols;
-typedef struct _GscTriggerSymbolsClass GscTriggerSymbolsClass;
-typedef struct _GscTriggerSymbolsPrivate GscTriggerSymbolsPrivate;
+typedef struct _GtkSourceCompletionTriggerSymbols GtkSourceCompletionTriggerSymbols;
+typedef struct _GtkSourceCompletionTriggerSymbolsClass GtkSourceCompletionTriggerSymbolsClass;
+typedef struct _GtkSourceCompletionTriggerSymbolsPrivate GtkSourceCompletionTriggerSymbolsPrivate;
 
-struct _GscTriggerSymbols {
+struct _GtkSourceCompletionTriggerSymbols {
 	GObject parent;
-	GscTriggerSymbolsPrivate *priv;	
+	GtkSourceCompletionTriggerSymbolsPrivate *priv;	
 };
 
-struct _GscTriggerSymbolsClass {
+struct _GtkSourceCompletionTriggerSymbolsClass {
 	GObjectClass parent;
 };
 
-GscTriggerSymbols* 
-gsc_trigger_symbols_new(GscCompletion *completion);
+GtkSourceCompletionTriggerSymbols* 
+gtk_source_completion_trigger_symbols_new(GtkSourceCompletionCompletion *completion);
 
-GType gsc_trigger_symbols_get_type ();
+GType gtk_source_completion_trigger_symbols_get_type ();
 
 G_END_DECLS
 
