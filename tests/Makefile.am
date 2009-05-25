@@ -13,6 +13,8 @@ EXTRA_PROGRAMS = test-ctags
 noinst_PROGRAMS = test-ctags
 
 test_ctags_SOURCES =			\
+	$(top_srcdir)/src/sc-symbol.h	\
+	$(top_srcdir)/src/sc-symbol.c	\
 	$(top_srcdir)/src/sc-ctags.h	\
 	$(top_srcdir)/src/sc-ctags.c	\
         test-ctags.c

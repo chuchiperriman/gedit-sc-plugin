@@ -21,59 +21,44 @@
 #include "sc-ctags.h"
 
 /*
- *      Free strings used by Symbol struct while parsing
- */ 
-void
-sc_ctags_symbol_free (Symbol *symbol)
-{
-        if (symbol->name) g_free (symbol->name);
-        if (symbol->file) g_free (symbol->file);
-        if (symbol->type) g_free (symbol->type);
-        if (symbol->language) g_free (symbol->language);
-        if (symbol->signature) g_free (symbol->signature);
-        
-        g_slice_free (Symbol, symbol);
-}
-
-/*
  *      This function needs work. Used to be custom parsed for ex searches
  *      which could potentially contain tabs, however, I've decided that isn't
  *      really needed. But, it's still using Symbol. We could just pass back
  *      **fields array.
  */ 
-Symbol*
+ScSymbol*
 sc_ctags_symbol_new_from_line (gchar *line)
 {
-	Symbol	*symbol;
-	gchar	**splits;
-	gchar	**fields;
+	ScSymbol	*symbol;
+	gchar		**splits_line, **splits_lang, **splits_sign = NULL;
+	gchar		**fields;
+	gchar		*sign = NULL;
 
 	/* name, file, ex search, type, line:n  language:x */
-
-	symbol = g_slice_new0 (Symbol);
 
 	fields = g_strsplit (line, "\t", 0);
 	if (!fields[0]) return NULL;
 
-	symbol->name = g_strdup (fields[0]);
-
-	symbol->file = g_path_get_basename (fields[1]);
-	symbol->type = g_strdup (fields[3]);
-
-	splits = g_strsplit (fields[4], ":", 0);
-	symbol->line = g_ascii_strtod (splits[1], NULL);
-	g_strfreev (splits);
-
-	splits = g_strsplit (fields[5], ":", 0);
-	symbol->language = g_strdup (splits[1]);
-	g_strfreev (splits);
+	splits_line = g_strsplit (fields[4], ":", 0);
+	splits_lang = g_strsplit (fields[5], ":", 0);
 	
 	if (fields[6])
 	{
-		splits = g_strsplit (fields[6], ":", 0);
-		symbol->signature = g_strdup (splits[1]);
-		g_strfreev (splits);
+		splits_sign = g_strsplit (fields[6], ":", 0);
+		sign = g_strdup (splits_sign[1]);
+		g_strfreev (splits_sign);
 	}
+	
+	symbol = sc_symbol_new (fields[0],
+				fields[3],
+				g_path_get_basename (fields[1]),
+				splits_lang[1], 
+				g_ascii_strtod (splits_line[1], NULL),
+				sign);
+	
+	g_strfreev (splits_line);
+	g_strfreev (splits_lang);
+	if (sign) g_free (sign);
 
 	g_strfreev (fields);
 
@@ -112,10 +97,10 @@ sc_ctags_exec (const gchar *exec, const gchar *filename)
 GList* 
 sc_ctags_get_symbols_from_string	(const gchar *ctags_output)
 {
-	gchar	**lines = NULL;
-	gint	i;
-	GList	*list = NULL;
-	Symbol	*symbol;
+	gchar		**lines = NULL;
+	gint		i;
+	GList		*list = NULL;
+	ScSymbol	*symbol;
 	
 	
 	if (!ctags_output)

@@ -22,6 +22,7 @@
  */
 
 #include <gtk/gtk.h>
+#include "../src/sc-symbol.h"
 #include "../src/sc-ctags.h"
 
 int
@@ -29,13 +30,14 @@ main (int argc, char *argv[])
 {
 	GList	*symbols;
 	GList	*l;
-	Symbol	*s;
+	ScSymbol	*s;
 	g_debug ("============= file ============");
 	symbols = sc_ctags_exec_get_symbols (CTAGS_EXEC_FILE, "../src/sc-plugin.c");
 	for (l = symbols; l != NULL; l = g_list_next (l))
 	{
-		s = (Symbol*)l->data;
-		g_debug ("name: %s\n sign: %s", s->name, s->signature);
+		s = (ScSymbol*)l->data;
+		g_debug ("name: %s\n sign: %s", sc_symbol_get_name (s), sc_symbol_get_signature (s));
+		g_object_unref (s);
 	}
 	g_list_free (symbols);
 	
@@ -43,8 +45,9 @@ main (int argc, char *argv[])
 	symbols = sc_ctags_exec_get_symbols (CTAGS_EXEC_PROJECT, "../src");
 	for (l = symbols; l != NULL; l = g_list_next (l))
 	{
-		s = (Symbol*)l->data;
-		g_debug ("name: %s\n sign: %s", s->name, s->signature);
+		s = (ScSymbol*)l->data;
+		g_debug ("name: %s\n sign: %s", sc_symbol_get_name (s), sc_symbol_get_signature (s));
+		g_object_unref (s);
 	}
 	g_list_free (symbols);
 	return 0;

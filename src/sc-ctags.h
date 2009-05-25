@@ -19,32 +19,23 @@
  */
 
 #include <gtk/gtk.h>
+#include "sc-symbol.h"
 
 #define CTAGS_EXEC_FILE "sh -c \"ctags -n --fields=-k-f-s-t+K+l+n+S -f - %s\""
 #define CTAGS_EXEC_PROJECT "sh -c \"ctags -n --fields=-k-f-s-t+K+l+n+S -f - %s/*.[ch]\""
 #define SYMBOL_TEMPLATE "<b>File:</b> %s\n<b>Type:</b> %s\n<b>Line:</b> %d"
 
-typedef struct 
-{
-        gchar           *name;
-        gchar           *type;
-        gchar           *file;
-        gchar           *language;
-        gint            line;
-        gchar		*signature;
-} Symbol; 
+void		 sc_ctags_symbol_free			(ScSymbol *symbol);
 
-void	 sc_ctags_symbol_free			(Symbol *symbol);
+ScSymbol	*sc_ctags_symbol_new_from_line		(gchar *line);
 
-Symbol	*sc_ctags_symbol_new_from_line		(gchar *line);
+gchar		*sc_ctags_exec				(const gchar *exec,
+							 const gchar *filename);
 
-gchar	*sc_ctags_exec				(const gchar *exec,
-						 const gchar *filename);
+GList		*sc_ctags_get_symbols_from_string	(const gchar *ctags_output);
 
-GList	*sc_ctags_get_symbols_from_string	(const gchar *ctags_output);
-
-GList	*sc_ctags_exec_get_symbols		(const gchar *exec,
-						 const gchar *filename);
+GList		*sc_ctags_exec_get_symbols		(const gchar *exec,
+							 const gchar *filename);
 
 
 
