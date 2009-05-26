@@ -15,12 +15,16 @@ G_BEGIN_DECLS
 #define SC_SYMBOL_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), SC_TYPE_SYMBOL, ScSymbolClass))
 
 typedef struct _ScSymbolClass ScSymbolClass;
-typedef struct _ScSymbolPrivate ScSymbolPrivate;
 typedef struct _ScSymbol ScSymbol;
 
 struct _ScSymbol {
 	GObject parent;
-	ScSymbolPrivate *priv;
+	gchar	*name;
+        gchar	*type;
+        gchar	*file;
+        gchar	*language;
+        gint	 line;
+        gchar	*signature;
 };
 
 struct _ScSymbolClass {
@@ -35,19 +39,6 @@ ScSymbol	*sc_symbol_new			(const gchar *name,
 						 const gchar *language,
 						 const gint line,
 						 const gchar *signature);
-
-const gchar	*sc_symbol_get_name		(ScSymbol *self);
-void		 sc_symbol_set_name		(ScSymbol *self, const gchar *name);
-const gchar	*sc_symbol_get_type_name	(ScSymbol *self);
-void		 sc_symbol_set_type_name	(ScSymbol *self, const gchar *type_name);
-const gchar	*sc_symbol_get_file		(ScSymbol *self);
-void		 sc_symbol_set_file		(ScSymbol *self, const gchar *file);
-const gchar	*sc_symbol_get_language		(ScSymbol *self);
-void		 sc_symbol_set_language		(ScSymbol *self, const gchar *language);
-const gint	 sc_symbol_get_line		(ScSymbol *self);
-void		 sc_symbol_set_line		(ScSymbol *self, const gint line);
-const gchar	*sc_symbol_get_signature	(ScSymbol *self);
-void		 sc_symbol_set_signature	(ScSymbol *self, const gchar *signature);
 
 G_END_DECLS
 

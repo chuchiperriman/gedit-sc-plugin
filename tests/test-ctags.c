@@ -39,7 +39,7 @@ main (int argc, char *argv[])
 	for (l = symbols; l != NULL; l = g_list_next (l))
 	{
 		s = (ScSymbol*)l->data;
-		g_debug ("name: %s\n sign: %s", sc_symbol_get_name (s), sc_symbol_get_signature (s));
+		g_debug ("name: %s\n sign: %s", s->name, s->signature);
 		g_object_unref (s);
 	}
 	g_list_free (symbols);
@@ -49,7 +49,7 @@ main (int argc, char *argv[])
 	for (l = symbols; l != NULL; l = g_list_next (l))
 	{
 		s = (ScSymbol*)l->data;
-		g_debug ("name: %s\n sign: %s", sc_symbol_get_name (s), sc_symbol_get_signature (s));
+		g_debug ("name: %s\n sign: %s", s->name, s->signature);
 		g_object_unref (s);
 	}
 	g_list_free (symbols);
