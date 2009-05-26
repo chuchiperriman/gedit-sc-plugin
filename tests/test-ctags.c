@@ -31,6 +31,9 @@ main (int argc, char *argv[])
 	GList	*symbols;
 	GList	*l;
 	ScSymbol	*s;
+	
+	gtk_init_check(&argc, &argv);
+	
 	g_debug ("============= file ============");
 	symbols = sc_ctags_exec_get_symbols (CTAGS_EXEC_FILE, "../src/sc-plugin.c");
 	for (l = symbols; l != NULL; l = g_list_next (l))

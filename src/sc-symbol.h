@@ -27,7 +27,7 @@ struct _ScSymbolClass {
 	GObjectClass parent_class;
 } _ScSymbolClass;
 
-GType sc_symbol_get_type (void);
+GType		 sc_symbol_get_type		(void);
 
 ScSymbol	*sc_symbol_new			(const gchar *name,
 						 const gchar *type,

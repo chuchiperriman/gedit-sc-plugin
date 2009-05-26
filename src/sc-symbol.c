@@ -2,9 +2,7 @@
 
 #include "sc-symbol.h"
 
-G_DEFINE_TYPE (ScSymbol, sc_symbol, G_TYPE_OBJECT)
-
-#define GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), SC_TYPE_SYMBOL, ScSymbolPrivate))
+#define SC_SYMBOL_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), SC_TYPE_SYMBOL, ScSymbolPrivate))
 
 struct _ScSymbolPrivate {
 	gchar	*name;
@@ -14,6 +12,8 @@ struct _ScSymbolPrivate {
         gint	 line;
         gchar	*signature;
 };
+
+G_DEFINE_TYPE (ScSymbol, sc_symbol, G_TYPE_OBJECT)
 
 static void
 sc_symbol_finalize (GObject *object)
@@ -32,14 +32,14 @@ static void
 sc_symbol_class_init (ScSymbolClass *klass)
 {
 	GObjectClass *object_class = G_OBJECT_CLASS (klass);
-	g_type_class_add_private (klass, sizeof (ScSymbolPrivate));
+	g_type_class_add_private (object_class, sizeof (ScSymbolPrivate));
 	object_class->finalize = sc_symbol_finalize;
 }
 
 static void
 sc_symbol_init (ScSymbol *self)
 {
-	self->priv = GET_PRIVATE (self);
+	self->priv = SC_SYMBOL_GET_PRIVATE (self);
 	self->priv->name = NULL;
 	self->priv->file = NULL;
 	self->priv->type = NULL;
@@ -55,13 +55,14 @@ sc_symbol_new	(const gchar *name,
 		 const gint line,
 		 const gchar *signature)
 {
-	ScSymbol *self = g_object_new (SC_TYPE_SYMBOL, NULL);
+	ScSymbol *self = SC_SYMBOL (g_object_new (SC_TYPE_SYMBOL, NULL));
 	self->priv->name = g_strdup (name);
 	self->priv->type = g_strdup (type);
 	self->priv->file = g_strdup (file);
 	self->priv->language = g_strdup (language);
 	self->priv->line = line;
-	self->priv->signature = g_strdup (signature);
+	if (signature)
+		self->priv->signature = g_strdup (signature);
 	return self;
 }
 
