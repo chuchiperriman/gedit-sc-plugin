@@ -366,25 +366,6 @@ sc_symbols_panel_populate (GtkWidget *widget, GList *symbols)
 	gtk_tree_view_expand_all (GTK_TREE_VIEW (self->priv->tree_view));
 }
 
-/*TODO Do it in the plugin
-static void 
-on_active_tab_state_changed (   GeditWindow *window, gpointer user_data)
-{
-        // file has been saved. re-populate symbols 
-        
-        if (user_data == NULL) return;
-        
-        ScSymbolsPanel *panel;
-        
-        panel = SC_SYMBOLS_PANEL (user_data);
-        
-        g_return_if_fail (SC_IS_SYMBOLS_PANEL (panel));
-        g_return_if_fail (GEDIT_IS_WINDOW (panel->priv->window));
-        g_return_if_fail (GTK_IS_TREE_VIEW (panel->priv->tree_view));
-        
-        populate_symbols (panel);
-}
-*/
 static void
 on_row_activated (              GtkTreeView *tree_view,
                                 GtkTreePath *path,

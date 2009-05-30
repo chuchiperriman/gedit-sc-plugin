@@ -31,10 +31,9 @@
 #include "sc-symbols-panel.h"
 #include "sc-ctags.h"
 
-
 #define SC_PLUGIN_GET_PRIVATE(object)	(G_TYPE_INSTANCE_GET_PRIVATE ((object), SC_TYPE_PLUGIN, ScPluginPrivate))
 
-#define SC_PANEL_KEY "sc-panel-key"
+#define SC_PROVIDER_SYMBOLS_KEY "sc-provider-symbols"
 
 struct _ScPluginPrivate
 {
@@ -84,7 +83,19 @@ tab_changed_cb (GeditWindow *geditwindow,
 		ScPlugin    *self)
 {
 	GeditDocument *doc = gedit_tab_get_document (tab);
+	GeditView *view = gedit_tab_get_view (tab);
 	populate_panel (self, doc);
+	
+	/*Providers*/
+	GtkSourceCompletionProvider *prov = GTK_SOURCE_COMPLETION_PROVIDER (g_object_get_data (G_OBJECT (doc), SC_PROVIDER_SYMBOLS_KEY));
+	if (prov == NULL)
+	{
+		GtkSourceCompletionProvider *prov = GTK_SOURCE_COMPLETION_PROVIDER(sc_provider_csymbols_new (doc));
+		GtkSourceCompletion *comp = gtk_source_view_get_completion (GTK_SOURCE_VIEW (view));
+		gtk_source_completion_add_provider (comp, prov, NULL);
+		g_object_set_data (G_OBJECT (doc), SC_PROVIDER_SYMBOLS_KEY, prov);
+		g_object_unref (prov);
+	}
 }
 
 static void
@@ -109,8 +120,6 @@ create_panel (GeditPlugin *plugin,
         image = gtk_image_new_from_stock (GTK_STOCK_CONVERT,
                                           GTK_ICON_SIZE_MENU);
         
-        g_return_if_fail (g_object_get_data (G_OBJECT (window), SC_PANEL_KEY) == NULL);
-        
         /* add a new panel to the side pane */
         
         side_panel = gedit_window_get_side_panel (window);
@@ -125,9 +134,6 @@ create_panel (GeditPlugin *plugin,
         
         gtk_widget_show_all (GTK_WIDGET (side_panel));
         
-        g_object_set_data (G_OBJECT (window), 
-                        SC_PANEL_KEY,
-                        symbol_browser_panel);
 }
 
 static void

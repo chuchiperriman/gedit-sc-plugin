@@ -3,7 +3,7 @@ dnl Process this file with autoconf to produce a configure script.
 GEDIT_MAJOR=2.20.0
 GEDIT_PLUGINS_MAJOR=2.20.0
 
-AC_INIT(gedit-sc-plugin, 0.1.0, http://www.github.com)
+AC_INIT(gedit-sc-plugin, 0.1.9, http://www.github.com)
 
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_MACRO_DIR([m4])

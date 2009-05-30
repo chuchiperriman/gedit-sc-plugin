@@ -18,6 +18,8 @@
  */
 
 #include "sc-provider-csymbols.h"
+#include "sc-symbol.h"
+#include "sc-ctags.h"
 #include <gtksourceview/gtksourcecompletion.h>
 #include <gtksourceview/gtksourcecompletionitem.h>
 
@@ -27,8 +29,8 @@ static void	 sc_provider_csymbols_iface_init	(GtkSourceCompletionProviderIface *
 
 struct _ScProviderCsymbolsPrivate
 {
-	GdkPixbuf *icon;
-	GdkPixbuf *proposal_icon;
+	GdkPixbuf *provider_icon;
+	GeditDocument *document;
 };
 
 G_DEFINE_TYPE_WITH_CODE (ScProviderCsymbols,
@@ -40,36 +42,74 @@ G_DEFINE_TYPE_WITH_CODE (ScProviderCsymbols,
 static const gchar * 
 sc_provider_csymbols_get_name (GtkSourceCompletionProvider *self)
 {
-	return "Symbols";
+	return "File Symbols";
 }
 
 static GdkPixbuf * 
 sc_provider_csymbols_get_icon (GtkSourceCompletionProvider *self)
 {
-	return SC_PROVIDER_CSYMBOLS (self)->priv->icon;
+	return SC_PROVIDER_CSYMBOLS (self)->priv->provider_icon;
 }
 
-
-static GList *
-append_item (GList *list, const gchar *name, GdkPixbuf *icon, const gchar *info)
+/* TODO Do better because we load a new pixbuf in all the proposals
+ *      Return the PixBuf that represents the specified type of symbol, or NULL
+ */         
+static GdkPixbuf *
+get_symbol_pixbuf (gchar *type)
 {
-	GtkSourceCompletionItem *prop;
-	
-	prop = gtk_source_completion_item_new (name, name, icon, info);
-	return g_list_append (list, prop);
+        GdkPixbuf               *pixbuf=NULL;
+        gchar                   *path;
+        GError                  *error = NULL;
+        
+        path = g_strdup_printf (ICON_DIR"/symbol-%s.png", type);
+        
+        if (g_file_test (path, G_FILE_TEST_EXISTS))
+        {
+                pixbuf = gdk_pixbuf_new_from_file(path, &error);
+        }
+        
+        if (error)
+        {
+                g_warning ("Could not load pixbuf: %s\n", error->message);
+                g_error_free(error);
+        }
+        
+        g_free (path);
+        
+        
+        return pixbuf;
 }
 
 static GList *
 sc_provider_csymbols_get_proposals (GtkSourceCompletionProvider *base,
                                  GtkTextIter                 *iter)
 {
-	ScProviderCsymbols *provider = SC_PROVIDER_CSYMBOLS (base);
-	GList *list = NULL;
+	ScProviderCsymbols *self = SC_PROVIDER_CSYMBOLS (base);
+	GList *list = NULL, *symbols = NULL, *l;
+	GtkSourceCompletionItem *prop;
+	ScSymbol *s;
+	GdkPixbuf *icon;
+	gchar *info;
 	
-	list = append_item (list, "aa", provider->priv->proposal_icon, "Info proposal 1.1");
-	list = append_item (list, "ab", provider->priv->proposal_icon, "Info proposal 1.2");
-	list = append_item (list, "bc", provider->priv->proposal_icon, "Info proposal 1.3");
-	list = append_item (list, "bd", provider->priv->proposal_icon, "Info proposal 1.3");
+	gchar *uri = gedit_document_get_uri_for_display (self->priv->document);
+	if (g_file_test (uri, G_FILE_TEST_EXISTS))
+	{
+		symbols = sc_ctags_exec_get_symbols (CTAGS_EXEC_FILE, uri);
+	}
+	
+	for (l = symbols; l != NULL; l = g_list_next (l))
+	{
+		s = SC_SYMBOL (l->data);
+		info = NULL;
+		if (s->signature)
+		{
+			info = g_strdup_printf ("<b>%s</b> %s", s->name, s->signature);
+		}
+		icon = get_symbol_pixbuf (s->type);
+		prop = gtk_source_completion_item_new (s->name, s->name, icon, info);
+		/*TODO The completion item frees the icon?*/
+		list = g_list_append (list, prop);
+	}
 	
 	return list;
 }
@@ -98,16 +138,11 @@ sc_provider_csymbols_finalize (GObject *object)
 {
 	ScProviderCsymbols *provider = SC_PROVIDER_CSYMBOLS (object);
 	
-	if (provider->priv->icon != NULL)
+	if (provider->priv->provider_icon != NULL)
 	{
-		g_object_unref (provider->priv->icon);
+		g_object_unref (provider->priv->provider_icon);
 	}
 	
-	if (provider->priv->proposal_icon != NULL)
-	{
-		g_object_unref (provider->priv->proposal_icon);
-	}
-
 	G_OBJECT_CLASS (sc_provider_csymbols_parent_class)->finalize (object);
 }
 
@@ -143,16 +178,12 @@ sc_provider_csymbols_init (ScProviderCsymbols * self)
 	theme = gtk_icon_theme_get_default ();
 
 	gtk_icon_size_lookup (GTK_ICON_SIZE_MENU, &width, NULL);
-	self->priv->proposal_icon = gtk_icon_theme_load_icon (theme,
-	                                                      GTK_STOCK_YES,
-	                                                      width,
-	                                                      GTK_ICON_LOOKUP_USE_BUILTIN,
-	                                                      NULL);
 }
 
 ScProviderCsymbols *
-sc_provider_csymbols_new ()
+sc_provider_csymbols_new (GeditDocument *document)
 {
-	ScProviderCsymbols *ret = g_object_new (SC_TYPE_PROVIDER_CSYMBOLS, NULL);
-	return ret;
+	ScProviderCsymbols *self = g_object_new (SC_TYPE_PROVIDER_CSYMBOLS, NULL);
+	self->priv->document = document;
+	return self;
 }

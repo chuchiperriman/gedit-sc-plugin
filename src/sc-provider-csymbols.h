@@ -22,6 +22,7 @@
 #include <glib.h>
 #include <glib-object.h>
 #include <gtksourceview/gtksourcecompletionprovider.h>
+#include <gedit/gedit-plugin.h>
 
 G_BEGIN_DECLS
 
@@ -52,7 +53,7 @@ struct _ScProviderCsymbolsClass
 
 GType		 sc_provider_csymbols_get_type	(void) G_GNUC_CONST;
 
-ScProviderCsymbols *sc_provider_csymbols_new ();
+ScProviderCsymbols *sc_provider_csymbols_new (GeditDocument *document);
 
 G_END_DECLS
 
