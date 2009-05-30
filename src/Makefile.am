@@ -5,6 +5,7 @@ INCLUDES = \
 	$(GEDIT_CFLAGS) 						\
 	$(WARN_CFLAGS)							\
 	$(DISABLE_DEPRECATED_CFLAGS)					\
+	-DICON_DIR=\""$(datadir)/gedit-sc-plugin/pixmaps"\"	\
 	-DGEDIT_LOCALEDIR=\""$(prefix)/$(DATADIRNAME)/locale"\"
 
 AM_CFLAGS =\

@@ -223,7 +223,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-SUBDIRS = po src tests
+SUBDIRS = po src data tests
 EXTRA_DIST = \
 	autogen.sh		\
 	ChangeLog  		\

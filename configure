@@ -14988,7 +14988,7 @@ fi
 PLUGIN_LIBTOOL_FLAGS="-module -avoid-version"
 
 
-ac_config_files="$ac_config_files Makefile src/Makefile tests/Makefile po/Makefile.in"
+ac_config_files="$ac_config_files Makefile src/Makefile data/Makefile tests/Makefile po/Makefile.in"
 
 
 cat >confcache <<\_ACEOF
@@ -15904,6 +15904,7 @@ do
     "default-1") CONFIG_COMMANDS="$CONFIG_COMMANDS default-1" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
+    "data/Makefile") CONFIG_FILES="$CONFIG_FILES data/Makefile" ;;
     "tests/Makefile") CONFIG_FILES="$CONFIG_FILES tests/Makefile" ;;
     "po/Makefile.in") CONFIG_FILES="$CONFIG_FILES po/Makefile.in" ;;
     "po/stamp-it") CONFIG_COMMANDS="$CONFIG_COMMANDS po/stamp-it" ;;

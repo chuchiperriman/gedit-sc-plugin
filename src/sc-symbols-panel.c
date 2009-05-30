@@ -100,17 +100,13 @@ get_symbol_pixbuf (gchar *type)
 {
         GdkPixbuf               *pixbuf=NULL;
         gchar                   *path;
-        gchar                   *filename;
         GError                  *error = NULL;
         
-        filename = g_strdup_printf ("symbol-%s.png", type);
+        path = g_strdup_printf (ICON_DIR"/symbol-%s.png", type);
         
-        path = NULL;
-                        
-        if (path)
+        if (g_file_test (path, G_FILE_TEST_EXISTS))
         {
                 pixbuf = gdk_pixbuf_new_from_file(path, &error);
-                g_free (path);
         }
         
         if (error)
@@ -119,7 +115,7 @@ get_symbol_pixbuf (gchar *type)
                 g_error_free(error);
         }
         
-        g_free (filename);
+        g_free (path);
         
         
         return pixbuf;
