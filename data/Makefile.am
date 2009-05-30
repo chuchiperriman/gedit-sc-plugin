@@ -11,6 +11,7 @@ scplugin_DATA = \
 	symbol-method.png \
 	symbol-struct.png \
 	symbol-typedef.png \
+	symbol-member.png \
 	symbol-variable.png
 
 EXTRA_DIST = $(scplugin_DATA)
