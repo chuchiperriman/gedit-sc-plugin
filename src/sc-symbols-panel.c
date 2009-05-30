@@ -141,8 +141,10 @@ add_symbol (ScSymbolsPanel *panel,  ScSymbol *symbol)
         gboolean                valid = TRUE;
         gboolean                no_parent = TRUE;
         gchar                   *markup;
+        GeditDocument		*document;
         
         tree_view = panel->priv->tree_view;
+        document = gedit_window_get_active_document (panel->priv->window);
         
         /* we could do bold here */
         markup = g_strdup_printf ("<b>%s</b>", symbol->type);
@@ -196,7 +198,7 @@ add_symbol (ScSymbolsPanel *panel,  ScSymbol *symbol)
                         SYM_FILE, symbol->file,
                         SYM_LINE, symbol->line,
                         SYM_LANGUAGE, symbol->language,
-//TODO Cambiar esto y usar el objeto directamente                        SYM_DOCUMENT, symbol->document,
+                        SYM_DOCUMENT, document,
                         -1);
                         
         if (pixbuf) g_object_unref (pixbuf);
@@ -272,7 +274,7 @@ sc_symbols_panel_init (ScSymbolsPanel *panel)
         /* main column */
         
         col = gtk_tree_view_column_new();
-        gtk_tree_view_column_set_title(col, "Symbol");
+        gtk_tree_view_column_set_title(col, "Symbols");
     
         renderer = gtk_cell_renderer_pixbuf_new();
         gtk_tree_view_column_pack_start(col, renderer, FALSE);
@@ -364,6 +366,8 @@ sc_symbols_panel_populate (GtkWidget *widget, GList *symbols)
 		g_object_unref (s);
 	}
 	g_list_free (symbols);
+	
+	gtk_tree_view_expand_all (GTK_TREE_VIEW (self->priv->tree_view));
 }
 
 /*TODO Do it in the plugin
@@ -402,14 +406,12 @@ on_row_activated (              GtkTreeView *tree_view,
         gint                            line;
         
         
-        panel = (ScSymbolsPanel *)user_data;
+        panel = SC_SYMBOLS_PANEL (user_data);
         model = gtk_tree_view_get_model (tree_view);
         gtk_tree_model_get_iter (model, &iter, path);
         
         g_return_if_fail (&iter != NULL);
-
         /* expand/collapse row if it has children (and return) */
-        
         if (gtk_tree_model_iter_has_child (model, &iter))
         {
                         if (gtk_tree_view_row_expanded (tree_view, path))

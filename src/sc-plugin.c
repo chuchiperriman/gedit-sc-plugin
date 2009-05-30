@@ -71,16 +71,27 @@ populate_panel (ScPlugin *self, GeditDocument *doc)
 	
 	/*TODO free this uri?*/
 	uri = gedit_document_get_uri_for_display (doc);
-	symbols = sc_ctags_exec_get_symbols (CTAGS_EXEC_FILE, uri);
-	sc_symbols_panel_populate (self->priv->panel, symbols);
+	if (g_file_test (uri, G_FILE_TEST_EXISTS))
+	{
+		symbols = sc_ctags_exec_get_symbols (CTAGS_EXEC_FILE, uri);
+		sc_symbols_panel_populate (self->priv->panel, symbols);
+	}
 }
 
 static void
-tab_added_cb (GeditWindow *geditwindow,
-	      GeditTab    *tab,
-	      ScPlugin    *self)
+tab_changed_cb (GeditWindow *geditwindow,
+		GeditTab    *tab,
+		ScPlugin    *self)
 {
 	GeditDocument *doc = gedit_tab_get_document (tab);
+	populate_panel (self, doc);
+}
+
+static void
+tab_state_changed_cb (GeditWindow *window,
+		      ScPlugin *self)
+{
+	GeditDocument *doc = gedit_window_get_active_document (window);
 	populate_panel (self, doc);
 }
 
@@ -129,13 +140,14 @@ impl_activate (GeditPlugin *plugin,
 	
 	create_panel (plugin, window);
 	
-	g_signal_connect (window, "tab-added",
-			  G_CALLBACK (tab_added_cb),
-			  self);
-
 	g_signal_connect (window, "active-tab-changed",
-			  G_CALLBACK (tab_added_cb),
+			  G_CALLBACK (tab_changed_cb),
 			  self);
+	
+	g_signal_connect (window, "active-tab-state-changed",
+			  G_CALLBACK (tab_state_changed_cb),
+			  self);
+			  
 }
 
 static void
