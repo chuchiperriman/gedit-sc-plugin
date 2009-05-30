@@ -22,6 +22,8 @@ libsourcecompletion_la_SOURCES = 	\
 	sc-language-manager.c		\
 	sc-provider-csymbols.h		\
 	sc-provider-csymbols.c		\
+	sc-symbols-panel.h		\
+	sc-symbols-panel.c		\
 	sc-plugin.h			\
 	sc-plugin.c
 

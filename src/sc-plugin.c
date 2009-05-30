@@ -28,49 +28,24 @@
 
 #include "sc-plugin.h"
 #include "sc-provider-csymbols.h"
+#include "sc-symbols-panel.h"
+#include "sc-ctags.h"
 
 
 #define SC_PLUGIN_GET_PRIVATE(object)	(G_TYPE_INSTANCE_GET_PRIVATE ((object), SC_TYPE_PLUGIN, ScPluginPrivate))
 
-#define SC_PROVIDERS_KEY "sc-providers"
+#define SC_PANEL_KEY "sc-panel-key"
 
 struct _ScPluginPrivate
 {
 	GeditWindow *gedit_window;
 	GtkWidget *window;
+	GtkWidget *panel;
 };
 
 typedef struct _ViewAndCompletion ViewAndCompletion;
 
 GEDIT_PLUGIN_REGISTER_TYPE (ScPlugin, sc_plugin)
-
-static gboolean
-view_key_release_cb 	(GtkSourceView 		*view,
-			 GdkEventKey 		*event,
-			 ScPlugin		*self)
-{
-	GtkSourceCompletion *completion;
-	guint key = 0;
-	GdkModifierType mod;
-	guint s;
-	gtk_accelerator_parse ("<Control>m", &key, &mod);
-	completion = gtk_source_view_get_completion (view);
-	
-	s = event->state & gtk_accelerator_get_default_mod_mask();
-	if (s == mod && gdk_keyval_to_lower(event->keyval) == key)
-	{
-		GList *providers = g_object_get_data (G_OBJECT (completion),
-						      SC_PROVIDERS_KEY);
-		if (providers != NULL){
-			gtk_source_completion_show (completion,
-						    providers,
-						    NULL,
-						    NULL);
-		}
-	}
-	
-	return FALSE;
-}
 
 static void
 sc_plugin_init (ScPlugin *plugin)
@@ -89,44 +64,78 @@ sc_plugin_finalize (GObject *object)
 }
 
 static void
+populate_panel (ScPlugin *self, GeditDocument *doc)
+{
+	GList *symbols;
+	gchar *uri;
+	
+	/*TODO free this uri?*/
+	uri = gedit_document_get_uri_for_display (doc);
+	symbols = sc_ctags_exec_get_symbols (CTAGS_EXEC_FILE, uri);
+	sc_symbols_panel_populate (self->priv->panel, symbols);
+}
+
+static void
 tab_added_cb (GeditWindow *geditwindow,
 	      GeditTab    *tab,
-	      gpointer     user_data)
+	      ScPlugin    *self)
 {
-	
-	GList *providers = NULL;
-	GeditView *view = gedit_tab_get_view (tab);
-	GtkSourceCompletion *comp = gtk_source_view_get_completion (GTK_SOURCE_VIEW (view));
-	
-	
-	ScProviderCsymbols *sc_prov = sc_provider_csymbols_new ();
-	gtk_source_completion_add_provider(comp,GTK_SOURCE_COMPLETION_PROVIDER(sc_prov), NULL);
-	g_object_unref(sc_prov);
-	providers = g_list_append (providers, sc_prov);
-	
-	g_object_set_data_full (G_OBJECT (comp),
-				SC_PROVIDERS_KEY,
-				providers,
-				(GDestroyNotify) g_list_free);
-	
-	/*
-	g_signal_connect(view, "key-release-event", G_CALLBACK(view_key_release_cb), user_data);
-	*/
-	g_debug ("Sc: provider registered");
+	GeditDocument *doc = gedit_tab_get_document (tab);
+	populate_panel (self, doc);
+}
+
+static void
+create_panel (GeditPlugin *plugin,
+	      GeditWindow *window)
+{
+        GeditPanel              *side_panel;
+        GtkWidget               *symbol_browser_panel;
+        GtkWidget               *image;
+        ScPlugin		*self;
+        
+        self = SC_PLUGIN (plugin);
+        /*TODO get icon for left pane tab */
+        image = gtk_image_new_from_stock (GTK_STOCK_CONVERT,
+                                          GTK_ICON_SIZE_MENU);
+        
+        g_return_if_fail (g_object_get_data (G_OBJECT (window), SC_PANEL_KEY) == NULL);
+        
+        /* add a new panel to the side pane */
+        
+        side_panel = gedit_window_get_side_panel (window);
+        symbol_browser_panel = sc_symbols_panel_new (window);
+
+	self->priv->panel = symbol_browser_panel;
+        
+        gedit_panel_add_item (side_panel, 
+                        symbol_browser_panel, 
+                        "Symbol Browser", 
+                        image);
+        
+        gtk_widget_show_all (GTK_WIDGET (side_panel));
+        
+        g_object_set_data (G_OBJECT (window), 
+                        SC_PANEL_KEY,
+                        symbol_browser_panel);
 }
 
 static void
 impl_activate (GeditPlugin *plugin,
 	       GeditWindow *window)
 {
-	ScPlugin * dw_plugin = (ScPlugin*)plugin;
-	dw_plugin->priv->gedit_window = window;
+	ScPlugin * self = SC_PLUGIN(plugin);
+	self->priv->gedit_window = window;
 	gedit_debug (DEBUG_PLUGINS);
+	
+	create_panel (plugin, window);
 	
 	g_signal_connect (window, "tab-added",
 			  G_CALLBACK (tab_added_cb),
-			  NULL);
+			  self);
 
+	g_signal_connect (window, "active-tab-changed",
+			  G_CALLBACK (tab_added_cb),
+			  self);
 }
 
 static void
@@ -134,6 +143,7 @@ impl_deactivate (GeditPlugin *plugin,
 		 GeditWindow *window)
 {
 	gedit_debug (DEBUG_PLUGINS);
+	/*TODO Disconnect signals*/
 }
 
 static void
