@@ -107,8 +107,9 @@ sc_provider_csymbols_get_proposals (GtkSourceCompletionProvider *base,
 		}
 		icon = get_symbol_pixbuf (s->type);
 		prop = gtk_source_completion_item_new (s->name, s->name, icon, info);
-		/*TODO The completion item frees the icon?*/
 		list = g_list_append (list, prop);
+		g_free (info);
+		g_object_unref (icon);
 	}
 	
 	return list;

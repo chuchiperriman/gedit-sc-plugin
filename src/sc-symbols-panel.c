@@ -416,6 +416,7 @@ on_row_activated (              GtkTreeView *tree_view,
                 view = gedit_window_get_active_view (panel->priv->window);
                 gedit_document_goto_line (document, line - 1);
                 gedit_view_scroll_to_cursor (view);
+                gtk_widget_grab_focus (GTK_WIDGET (view));
         }
         
         if (name) g_free (name); 
