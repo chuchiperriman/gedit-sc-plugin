@@ -23,6 +23,8 @@ libsourcecompletion_la_SOURCES = 	\
 	sc-language-manager.c		\
 	sc-provider-csymbols.h		\
 	sc-provider-csymbols.c		\
+	sc-provider-csymbols-goto.h	\
+	sc-provider-csymbols-goto.c	\
 	sc-symbols-panel.h		\
 	sc-symbols-panel.c		\
 	sc-plugin.h			\
