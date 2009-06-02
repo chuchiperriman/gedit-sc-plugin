@@ -23,17 +23,20 @@
 #endif
 
 #include <gdk/gdk.h>
+#include <gdk/gdkkeysyms.h>
 #include <glib/gi18n-lib.h>
 #include <gedit/gedit-debug.h>
 
 #include "sc-plugin.h"
 #include "sc-provider-csymbols.h"
+#include "sc-provider-csymbols-goto.h"
 #include "sc-symbols-panel.h"
 #include "sc-ctags.h"
 
 #define SC_PLUGIN_GET_PRIVATE(object)	(G_TYPE_INSTANCE_GET_PRIVATE ((object), SC_TYPE_PLUGIN, ScPluginPrivate))
 
 #define SC_PROVIDER_SYMBOLS_KEY "sc-provider-symbols"
+#define SC_PROVIDER_SYMBOLS_GOTO_KEY "sc-provider-symbols-goto"
 
 struct _ScPluginPrivate
 {
@@ -68,13 +71,37 @@ populate_panel (ScPlugin *self, GeditDocument *doc)
 	GList *symbols;
 	gchar *uri;
 	
-	/*TODO free this uri?*/
 	uri = gedit_document_get_uri_for_display (doc);
 	if (g_file_test (uri, G_FILE_TEST_EXISTS))
 	{
 		symbols = sc_ctags_exec_get_symbols (CTAGS_EXEC_FILE, uri);
 		sc_symbols_panel_populate (self->priv->panel, symbols);
 	}
+	g_free (uri);
+}
+
+static gboolean
+view_key_press_event_cb (GtkWidget *view,
+                         GdkEventKey *event,
+                         gpointer user_data)
+{
+	GeditDocument *doc;
+	doc = GEDIT_DOCUMENT (gtk_text_view_get_buffer (GTK_TEXT_VIEW (view)));
+	GtkSourceCompletion *comp = gtk_source_view_get_completion (GTK_SOURCE_VIEW (view));
+	guint s = event->state & gtk_accelerator_get_default_mod_mask();
+	
+        if (s == GDK_CONTROL_MASK && event->keyval == GDK_m)
+        {
+        	GList *providers = g_list_append (NULL, g_object_get_data (G_OBJECT (doc), SC_PROVIDER_SYMBOLS_GOTO_KEY));
+		gtk_source_completion_show (comp,
+					    providers,
+					    NULL,
+					    NULL);
+		g_list_free (providers);
+                return TRUE;
+        }
+
+        return FALSE;
 }
 
 static void
@@ -90,11 +117,21 @@ tab_changed_cb (GeditWindow *geditwindow,
 	GtkSourceCompletionProvider *prov = GTK_SOURCE_COMPLETION_PROVIDER (g_object_get_data (G_OBJECT (doc), SC_PROVIDER_SYMBOLS_KEY));
 	if (prov == NULL)
 	{
-		GtkSourceCompletionProvider *prov = GTK_SOURCE_COMPLETION_PROVIDER(sc_provider_csymbols_new (doc));
 		GtkSourceCompletion *comp = gtk_source_view_get_completion (GTK_SOURCE_VIEW (view));
+
+		GtkSourceCompletionProvider *prov = GTK_SOURCE_COMPLETION_PROVIDER(sc_provider_csymbols_new (doc));
 		gtk_source_completion_add_provider (comp, prov, NULL);
 		g_object_set_data (G_OBJECT (doc), SC_PROVIDER_SYMBOLS_KEY, prov);
 		g_object_unref (prov);
+		
+		GtkSourceCompletionProvider *prov_goto = GTK_SOURCE_COMPLETION_PROVIDER(sc_provider_csymbols_goto_new (doc));
+		gtk_source_completion_add_provider (comp, prov_goto, NULL);
+		g_object_set_data (G_OBJECT (doc), SC_PROVIDER_SYMBOLS_GOTO_KEY, prov_goto);
+		g_object_unref (prov_goto);
+		
+		g_signal_connect (view, "key-press-event",
+			  G_CALLBACK (view_key_press_event_cb),
+			  self);
 	}
 }
 
@@ -116,6 +153,7 @@ create_panel (GeditPlugin *plugin,
         ScPlugin		*self;
         
         self = SC_PLUGIN (plugin);
+        
         /*TODO get icon for left pane tab */
         image = gtk_image_new_from_stock (GTK_STOCK_CONVERT,
                                           GTK_ICON_SIZE_MENU);

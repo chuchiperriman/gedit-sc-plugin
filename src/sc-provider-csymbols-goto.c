@@ -24,6 +24,7 @@
 #include <gtksourceview/gtksourcecompletionitem.h>
 
 #define SC_PROVIDER_CSYMBOLS_GOTO_GET_PRIVATE(object)(G_TYPE_INSTANCE_GET_PRIVATE((object), SC_TYPE_PROVIDER_CSYMBOLS_GOTO, ScProviderCsymbolsGotoPrivate))
+#define SC_SYMBOL_KEY "sc-symbol"
 
 static void	 sc_provider_csymbols_goto_iface_init	(GtkSourceCompletionProviderIface *iface);
 
@@ -76,7 +77,6 @@ get_symbol_pixbuf (gchar *type)
         
         g_free (path);
         
-        
         return pixbuf;
 }
 
@@ -107,9 +107,11 @@ sc_provider_csymbols_goto_get_proposals (GtkSourceCompletionProvider *base,
 		}
 		icon = get_symbol_pixbuf (s->type);
 		prop = gtk_source_completion_item_new (s->name, s->name, icon, info);
+		g_object_set_data_full (G_OBJECT (prop), SC_SYMBOL_KEY, g_object_ref (s), g_object_unref);
 		list = g_list_append (list, prop);
 		g_free (info);
 		g_object_unref (icon);
+		/*TODO We must free the symbols?*/
 	}
 	
 	return list;
@@ -132,6 +134,20 @@ sc_provider_csymbols_goto_get_capabilities (GtkSourceCompletionProvider *provide
 {
 	return GTK_SOURCE_COMPLETION_CAPABILITY_INTERACTIVE ","
 	       GTK_SOURCE_COMPLETION_CAPABILITY_AUTOMATIC;
+}
+
+static gboolean
+sc_provider_csymbols_goto_activate_proposal (GtkSourceCompletionProvider	*provider,
+					     GtkSourceCompletionProposal	*proposal,
+					     GtkTextIter			*iter)
+{
+	ScProviderCsymbolsGoto *self = SC_PROVIDER_CSYMBOLS_GOTO (provider);
+	GeditTab *tab = gedit_tab_get_from_document (self->priv->document);
+	GeditView *view = gedit_tab_get_view (tab);
+	ScSymbol *s = SC_SYMBOL (g_object_get_data (G_OBJECT (proposal), SC_SYMBOL_KEY));
+	gedit_document_goto_line (self->priv->document, s->line - 1);
+        gedit_view_scroll_to_cursor (view);
+	return TRUE;
 }
 
 static void 
@@ -166,6 +182,7 @@ sc_provider_csymbols_goto_iface_init (GtkSourceCompletionProviderIface *iface)
 	iface->get_proposals = sc_provider_csymbols_goto_get_proposals;
 	iface->filter_proposal = sc_provider_csymbols_goto_filter_proposal;
 	iface->get_capabilities = sc_provider_csymbols_goto_get_capabilities;
+	iface->activate_proposal = sc_provider_csymbols_goto_activate_proposal;
 }
 
 static void 
