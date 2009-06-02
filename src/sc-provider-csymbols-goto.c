@@ -25,6 +25,7 @@
 
 #define SC_PROVIDER_CSYMBOLS_GOTO_GET_PRIVATE(object)(G_TYPE_INSTANCE_GET_PRIVATE((object), SC_TYPE_PROVIDER_CSYMBOLS_GOTO, ScProviderCsymbolsGotoPrivate))
 #define SC_SYMBOL_KEY "sc-symbol"
+#define INFO_TMPL "<b>Name:</b> %s\n<b>Type:</b> %s\n<b>Line:</b> %d\n<b>Signature:</b> %s"
 
 static void	 sc_provider_csymbols_goto_iface_init	(GtkSourceCompletionProviderIface *iface);
 
@@ -100,11 +101,12 @@ sc_provider_csymbols_goto_get_proposals (GtkSourceCompletionProvider *base,
 	for (l = symbols; l != NULL; l = g_list_next (l))
 	{
 		s = SC_SYMBOL (l->data);
-		info = NULL;
-		if (s->signature)
-		{
-			info = g_strdup_printf ("<b>%s</b> %s", s->name, s->signature);
-		}
+		info = g_strdup_printf (INFO_TMPL, 
+					s->name, 
+					s->type, 
+					s->line, 
+					s->signature != NULL ? s->signature : "");
+		
 		icon = get_symbol_pixbuf (s->type);
 		prop = gtk_source_completion_item_new (s->name, s->name, icon, info);
 		g_object_set_data_full (G_OBJECT (prop), SC_SYMBOL_KEY, g_object_ref (s), g_object_unref);
