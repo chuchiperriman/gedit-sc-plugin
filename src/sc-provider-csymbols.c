@@ -97,19 +97,24 @@ sc_provider_csymbols_get_proposals (GtkSourceCompletionProvider *base,
 		symbols = sc_ctags_exec_get_symbols (CTAGS_EXEC_FILE, uri);
 	}
 	
-	for (l = symbols; l != NULL; l = g_list_next (l))
+	if (symbols)
 	{
-		s = SC_SYMBOL (l->data);
-		info = NULL;
-		if (s->signature)
+		for (l = symbols; l != NULL; l = g_list_next (l))
 		{
-			info = g_strdup_printf ("<b>%s</b> %s", s->name, s->signature);
+			s = SC_SYMBOL (l->data);
+			info = NULL;
+			if (s->signature)
+			{
+				info = g_strdup_printf ("<b>%s</b> %s", s->name, s->signature);
+			}
+			icon = get_symbol_pixbuf (s->type);
+			prop = gtk_source_completion_item_new (s->name, s->name, icon, info);
+			list = g_list_append (list, prop);
+			g_free (info);
+			g_object_unref (icon);
+			g_object_unref (s);
 		}
-		icon = get_symbol_pixbuf (s->type);
-		prop = gtk_source_completion_item_new (s->name, s->name, icon, info);
-		list = g_list_append (list, prop);
-		g_free (info);
-		g_object_unref (icon);
+		g_list_free (symbols);
 	}
 	
 	return list;

@@ -98,22 +98,26 @@ sc_provider_csymbols_goto_get_proposals (GtkSourceCompletionProvider *base,
 		symbols = sc_ctags_exec_get_symbols (CTAGS_EXEC_FILE, uri);
 	}
 	
-	for (l = symbols; l != NULL; l = g_list_next (l))
+	if (symbols)
 	{
-		s = SC_SYMBOL (l->data);
-		info = g_strdup_printf (INFO_TMPL, 
-					s->name, 
-					s->type, 
-					s->line, 
-					s->signature != NULL ? s->signature : "");
+		for (l = symbols; l != NULL; l = g_list_next (l))
+		{
+			s = SC_SYMBOL (l->data);
+			info = g_strdup_printf (INFO_TMPL, 
+						s->name, 
+						s->type, 
+						s->line, 
+						s->signature != NULL ? s->signature : "");
 		
-		icon = get_symbol_pixbuf (s->type);
-		prop = gtk_source_completion_item_new (s->name, s->name, icon, info);
-		g_object_set_data_full (G_OBJECT (prop), SC_SYMBOL_KEY, g_object_ref (s), g_object_unref);
-		list = g_list_append (list, prop);
-		g_free (info);
-		g_object_unref (icon);
-		/*TODO We must free the symbols?*/
+			icon = get_symbol_pixbuf (s->type);
+			prop = gtk_source_completion_item_new (s->name, s->name, icon, info);
+			g_object_set_data_full (G_OBJECT (prop), SC_SYMBOL_KEY, g_object_ref (s), g_object_unref);
+			list = g_list_append (list, prop);
+			g_free (info);
+			g_object_unref (icon);
+			g_object_unref (s);
+		}
+		g_list_free (symbols);
 	}
 	
 	return list;
@@ -134,8 +138,7 @@ sc_provider_csymbols_goto_filter_proposal (GtkSourceCompletionProvider *provider
 static const gchar *
 sc_provider_csymbols_goto_get_capabilities (GtkSourceCompletionProvider *provider)
 {
-	return GTK_SOURCE_COMPLETION_CAPABILITY_INTERACTIVE ","
-	       GTK_SOURCE_COMPLETION_CAPABILITY_AUTOMATIC;
+	return NULL;
 }
 
 static gboolean
