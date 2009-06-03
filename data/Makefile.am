@@ -1,5 +1,5 @@
 # Symbol Browser Plugin
-scplugindir = $(datadir)/gedit-sc-plugin/pixmaps
+scplugindir = $(GEDIT_PLUGINS_DATA_DIR)/gedit-sc-plugin
 scplugin_DATA = \
 	gedit-symbol-browser-plugin.png \
 	symbol-class.png \

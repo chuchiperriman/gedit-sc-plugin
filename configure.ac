@@ -78,6 +78,12 @@ fi
 PLUGIN_LIBTOOL_FLAGS="-module -avoid-version"
 AC_SUBST(PLUGIN_LIBTOOL_FLAGS)
 
+GEDIT_PLUGINS_LIBS_DIR="$libdir/gedit-2/plugins"
+AC_SUBST(GEDIT_PLUGINS_LIBS_DIR)
+
+GEDIT_PLUGINS_DATA_DIR="$datadir/gedit-2/plugins"
+AC_SUBST(GEDIT_PLUGINS_DATA_DIR)
+
 AC_CONFIG_FILES([
 Makefile
 src/Makefile
