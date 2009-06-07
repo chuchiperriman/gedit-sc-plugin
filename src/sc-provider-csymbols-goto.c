@@ -19,6 +19,7 @@
 
 #include "sc-provider-csymbols-goto.h"
 #include "sc-symbol.h"
+#include "sc-utils.h"
 #include "sc-ctags.h"
 #include <gtksourceview/gtksourcecompletion.h>
 #include <gtksourceview/gtksourcecompletionitem.h>
@@ -53,34 +54,6 @@ sc_provider_csymbols_goto_get_icon (GtkSourceCompletionProvider *self)
 	return SC_PROVIDER_CSYMBOLS_GOTO (self)->priv->provider_icon;
 }
 
-/* TODO Do better because we load a new pixbuf in all the proposals
- *      Return the PixBuf that represents the specified type of symbol, or NULL
- */         
-static GdkPixbuf *
-get_symbol_pixbuf (gchar *type)
-{
-        GdkPixbuf               *pixbuf=NULL;
-        gchar                   *path;
-        GError                  *error = NULL;
-        
-        path = g_strdup_printf (ICON_DIR"/symbol-%s.png", type);
-        
-        if (g_file_test (path, G_FILE_TEST_EXISTS))
-        {
-                pixbuf = gdk_pixbuf_new_from_file(path, &error);
-        }
-        
-        if (error)
-        {
-                g_warning ("Could not load pixbuf: %s\n", error->message);
-                g_error_free(error);
-        }
-        
-        g_free (path);
-        
-        return pixbuf;
-}
-
 static GList *
 sc_provider_csymbols_goto_get_proposals (GtkSourceCompletionProvider *base,
                                  GtkTextIter                 *iter)
@@ -109,7 +82,7 @@ sc_provider_csymbols_goto_get_proposals (GtkSourceCompletionProvider *base,
 						s->line, 
 						s->signature != NULL ? s->signature : "");
 		
-			icon = get_symbol_pixbuf (s->type);
+			icon = sc_utils_symbol_pixbuf_new (s->type);
 			prop = gtk_source_completion_item_new (s->name, s->name, icon, info);
 			g_object_set_data_full (G_OBJECT (prop), SC_SYMBOL_KEY, g_object_ref (s), g_object_unref);
 			list = g_list_append (list, prop);

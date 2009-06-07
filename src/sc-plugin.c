@@ -35,8 +35,24 @@
 
 #define SC_PLUGIN_GET_PRIVATE(object)	(G_TYPE_INSTANCE_GET_PRIVATE ((object), SC_TYPE_PLUGIN, ScPluginPrivate))
 
+#define SC_STOCK_ICONS "sc-stock-icons"
 #define SC_PROVIDER_SYMBOLS_KEY "sc-provider-symbols"
 #define SC_PROVIDER_SYMBOLS_GOTO_KEY "sc-provider-symbols-goto"
+
+const gchar* ICONS[] = {
+	"symbol-class.png",
+	"symbol-constant.png",
+	"symbol-define.png",
+	"symbol-enumerator.png",
+	"symbol-function.png",
+	"symbol-macro.png",
+	"symbol-member.png",
+	"symbol-method.png",
+	"symbol-struct.png",
+	"symbol-typedef.png",
+	"symbol-variable.png",
+	NULL
+};
 
 struct _ScPluginPrivate
 {
