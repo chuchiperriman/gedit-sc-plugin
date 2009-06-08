@@ -54,25 +54,22 @@ sc_utils_icons_init ()
 }
 
 GdkPixbuf*
-sc_utils_get_symbol_pixbuf (gchar *type)
+sc_utils_get_theme_pixbuf (gchar *name)
 {
 	GtkIconTheme 		*icon_theme;
 	GdkPixbuf               *pixbuf=NULL;
-	gchar                   *name;
 	GError                  *error = NULL;
 
 	if (!icons_init)
 	{
 		sc_utils_icons_init ();
 	}
-	name = g_strdup_printf ("symbol-%s", type);
 	icon_theme = gtk_icon_theme_get_default ();
 	pixbuf = gtk_icon_theme_load_icon (icon_theme,
 					   name, /* icon name */
 					   24, /* size */
 					   0,  /* flags */
 					   &error);
-	g_free (name);
 	
 	if (!pixbuf)
 	{
@@ -81,6 +78,18 @@ sc_utils_get_symbol_pixbuf (gchar *type)
 	}
 	
         return pixbuf;
+}
+
+GdkPixbuf*
+sc_utils_get_symbol_pixbuf (gchar *type)
+{
+	GdkPixbuf		*pixbuf;
+	gchar                   *name;
+
+	name = g_strdup_printf ("symbol-%s", type);
+	pixbuf = sc_utils_get_theme_pixbuf (name);
+	g_free (name);
+	return pixbuf;
 }
 
 

@@ -166,14 +166,8 @@ sc_provider_csymbols_goto_iface_init (GtkSourceCompletionProviderIface *iface)
 static void 
 sc_provider_csymbols_goto_init (ScProviderCsymbolsGoto * self)
 {
-	GtkIconTheme *theme;
-	gint width;
-	
 	self->priv = SC_PROVIDER_CSYMBOLS_GOTO_GET_PRIVATE (self);
-	
-	theme = gtk_icon_theme_get_default ();
-
-	gtk_icon_size_lookup (GTK_ICON_SIZE_MENU, &width, NULL);
+	self->priv->provider_icon = sc_utils_get_theme_pixbuf (SC_APP_ICON_NAME);
 }
 
 ScProviderCsymbolsGoto *

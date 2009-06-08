@@ -1,7 +1,7 @@
 # Symbol Browser Plugin
 scplugindir = $(GEDIT_PLUGINS_DATA_DIR)/gedit-sc-plugin
 scplugin_DATA = \
-	gedit-symbol-browser-plugin.png \
+	gedit-sc-plugin.png \
 	symbol-class.png \
 	symbol-constant.png \
 	symbol-define.png \

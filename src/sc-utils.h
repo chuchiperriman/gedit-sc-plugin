@@ -25,6 +25,9 @@
 
 G_BEGIN_DECLS
 
+#define SC_APP_ICON_NAME "gedit-sc-plugin"
+
+GdkPixbuf	*sc_utils_get_theme_pixbuf 	(gchar *name);
 GdkPixbuf	*sc_utils_get_symbol_pixbuf	(gchar *type);
 
 G_END_DECLS
