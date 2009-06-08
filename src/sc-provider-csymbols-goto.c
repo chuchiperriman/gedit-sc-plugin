@@ -82,7 +82,7 @@ sc_provider_csymbols_goto_get_proposals (GtkSourceCompletionProvider *base,
 						s->line, 
 						s->signature != NULL ? s->signature : "");
 		
-			icon = sc_utils_symbol_pixbuf_new (s->type);
+			icon = sc_utils_get_symbol_pixbuf (s->type);
 			prop = gtk_source_completion_item_new (s->name, s->name, icon, info);
 			g_object_set_data_full (G_OBJECT (prop), SC_SYMBOL_KEY, g_object_ref (s), g_object_unref);
 			list = g_list_append (list, prop);

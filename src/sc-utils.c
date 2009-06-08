@@ -26,6 +26,8 @@
 
 #define SC_STOCK_ICONS "sc-stock-icons"
 
+static gboolean icons_init = FALSE;
+
 /*
 static const gchar* ICONS[] = {
 	"symbol-class.png",
@@ -43,28 +45,41 @@ static const gchar* ICONS[] = {
 };
 */
 
-GdkPixbuf*
-sc_utils_symbol_pixbuf_new (gchar *type)
+static void
+sc_utils_icons_init ()
 {
-        GdkPixbuf               *pixbuf=NULL;
-        gchar                   *path;
-        GError                  *error = NULL;
-        
-        path = g_strdup_printf (ICON_DIR"/symbol-%s.png", type);
-        
-        if (g_file_test (path, G_FILE_TEST_EXISTS))
-        {
-                pixbuf = gdk_pixbuf_new_from_file(path, &error);
-        }
-        
-        if (error)
-        {
-                g_warning ("Could not load pixbuf: %s\n", error->message);
-                g_error_free(error);
-        }
-        
-        g_free (path);
-        
+	GtkIconTheme *theme = gtk_icon_theme_get_default ();
+	gtk_icon_theme_append_search_path (theme, ICON_DIR);
+	icons_init = TRUE;
+}
+
+GdkPixbuf*
+sc_utils_get_symbol_pixbuf (gchar *type)
+{
+	GtkIconTheme 		*icon_theme;
+	GdkPixbuf               *pixbuf=NULL;
+	gchar                   *name;
+	GError                  *error = NULL;
+
+	if (!icons_init)
+	{
+		sc_utils_icons_init ();
+	}
+	name = g_strdup_printf ("symbol-%s", type);
+	icon_theme = gtk_icon_theme_get_default ();
+	pixbuf = gtk_icon_theme_load_icon (icon_theme,
+					   name, /* icon name */
+					   24, /* size */
+					   0,  /* flags */
+					   &error);
+	g_free (name);
+	
+	if (!pixbuf)
+	{
+		g_warning ("Couldn't load icon: %s", error->message);
+		g_error_free (error);
+	}
+	
         return pixbuf;
 }
 

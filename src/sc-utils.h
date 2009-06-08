@@ -21,11 +21,11 @@
 #ifndef __SC_UTILS_H__
 #define __SC_UTILS_H__
 
-#include <gdk/gdk.h>
+#include <gtk/gtk.h>
 
 G_BEGIN_DECLS
 
-GdkPixbuf	*sc_utils_symbol_pixbuf_new	(gchar *type);
+GdkPixbuf	*sc_utils_get_symbol_pixbuf	(gchar *type);
 
 G_END_DECLS
 
