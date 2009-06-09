@@ -21,6 +21,11 @@
  * 	Boston, MA  02110-1301, USA.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <glib/gi18n-lib.h>
 #include <gtk/gtk.h>
 #include "../src/sc-symbol.h"
 #include "../src/sc-ctags.h"

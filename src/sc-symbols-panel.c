@@ -25,16 +25,17 @@
 
 #include <string.h>
 
+#include "sc-utils.h"
 #include "sc-symbols-panel.h"
 #include "sc-symbol.h"
 
+#include <glib/gi18n-lib.h>
 #include <gedit/gedit-utils.h>
 #include <gedit/gedit-debug.h>
 #include <gedit/gedit-plugin.h>
 #include <gedit/gedit-statusbar.h>
 #include <gdk/gdkkeysyms.h>
 #include <gtk/gtk.h>
-#include <glib/gi18n.h>
 #include <glib/gstdio.h>
 
 #define SC_SYMBOLS_PANEL_GET_PRIVATE(object)(G_TYPE_INSTANCE_GET_PRIVATE ((object), \
@@ -93,35 +94,6 @@ sc_symbols_panel_class_init (ScSymbolsPanelClass *klass)
 }
 
 /*
- *      Return the PixBuf that represents the specified type of symbol, or NULL
- */         
-static GdkPixbuf *
-get_symbol_pixbuf (gchar *type)
-{
-        GdkPixbuf               *pixbuf=NULL;
-        gchar                   *path;
-        GError                  *error = NULL;
-        
-        path = g_strdup_printf (ICON_DIR"/symbol-%s.png", type);
-        
-        if (g_file_test (path, G_FILE_TEST_EXISTS))
-        {
-                pixbuf = gdk_pixbuf_new_from_file(path, &error);
-        }
-        
-        if (error)
-        {
-                g_warning ("Could not load pixbuf: %s\n", error->message);
-                g_error_free(error);
-        }
-        
-        g_free (path);
-        
-        
-        return pixbuf;
-}
-
-/*
  *      Add a single symbol to the treeview. Parents rows are added as the type
  *      whenever they aren't already present.
  */ 
@@ -146,7 +118,7 @@ add_symbol (ScSymbolsPanel *panel,  ScSymbol *symbol)
         markup = g_strdup_printf ("<b>%s</b>", symbol->type);
         markup[3] = g_ascii_toupper (markup[3]);
         
-        pixbuf = get_symbol_pixbuf (symbol->type);
+        pixbuf = sc_utils_get_symbol_pixbuf (symbol->type);
         
         store = GTK_TREE_STORE (gtk_tree_view_get_model(GTK_TREE_VIEW (tree_view)));
         
@@ -270,7 +242,7 @@ sc_symbols_panel_init (ScSymbolsPanel *panel)
         /* main column */
         
         col = gtk_tree_view_column_new();
-        gtk_tree_view_column_set_title(col, "Symbols");
+        gtk_tree_view_column_set_title(col, _("Symbols"));
     
         renderer = gtk_cell_renderer_pixbuf_new();
         gtk_tree_view_column_pack_start(col, renderer, FALSE);

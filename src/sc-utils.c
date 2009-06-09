@@ -23,6 +23,7 @@
 #endif
 
 #include "sc-utils.h"
+#include <glib/gi18n-lib.h>
 
 #define SC_STOCK_ICONS "sc-stock-icons"
 
@@ -73,7 +74,7 @@ sc_utils_get_theme_pixbuf (gchar *name)
 	
 	if (!pixbuf)
 	{
-		g_warning ("Couldn't load icon: %s", error->message);
+		g_warning (_("Couldn't load icon: %s"), error->message);
 		g_error_free (error);
 	}
 	

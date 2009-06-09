@@ -1,0 +1,60 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-06-09 02:28+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../src/sc.gedit-plugin.desktop.in.h:1
+msgid "Adds (auto)completion support to gedit for source code"
+msgstr ""
+
+#: ../src/sc.gedit-plugin.desktop.in.h:2
+msgid "Source Code Completion"
+msgstr ""
+
+#: ../src/sc-ctags.c:94
+#, c-format
+msgid "Could not execute ctags: %s\n"
+msgstr ""
+
+#: ../src/sc-plugin.c:186
+msgid "Symbol Browser"
+msgstr ""
+
+#: ../src/sc-provider-csymbols-goto.c:52
+msgid "File Symbols Goto"
+msgstr ""
+
+#: ../src/sc-provider-csymbols-goto.c:83
+#, c-format
+msgid ""
+"<b>Name:</b> %s\n"
+"<b>Type:</b> %s\n"
+"<b>Line:</b> %d\n"
+"<b>Signature:</b> %s"
+msgstr ""
+
+#: ../src/sc-provider-csymbols.c:51
+msgid "File Symbols"
+msgstr ""
+
+#: ../src/sc-utils.c:77
+#, c-format
+msgid "Couldn't load icon: %s"
+msgstr ""
+
+#: ../src/sc-symbols-panel.c:245
+msgid "Symbols"
+msgstr ""

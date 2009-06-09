@@ -1,1 +1,7 @@
 src/sc.gedit-plugin.desktop.in
+src/sc-ctags.c
+src/sc-plugin.c
+src/sc-provider-csymbols-goto.c
+src/sc-provider-csymbols.c
+src/sc-utils.c
+src/sc-symbols-panel.c

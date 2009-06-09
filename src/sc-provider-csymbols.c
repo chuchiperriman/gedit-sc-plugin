@@ -17,10 +17,15 @@
  *  along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "sc-provider-csymbols.h"
 #include "sc-symbol.h"
 #include "sc-utils.h"
 #include "sc-ctags.h"
+#include <glib/gi18n-lib.h>
 #include <gtksourceview/gtksourcecompletion.h>
 #include <gtksourceview/gtksourcecompletionitem.h>
 
@@ -43,7 +48,7 @@ G_DEFINE_TYPE_WITH_CODE (ScProviderCsymbols,
 static const gchar * 
 sc_provider_csymbols_get_name (GtkSourceCompletionProvider *self)
 {
-	return "File Symbols";
+	return _("File Symbols");
 }
 
 static GdkPixbuf * 

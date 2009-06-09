@@ -183,7 +183,7 @@ create_panel (GeditPlugin *plugin,
         
         gedit_panel_add_item (side_panel, 
                         symbol_browser_panel, 
-                        "Symbol Browser", 
+                        _("Symbol Browser"), 
                         image);
         
         gtk_widget_show_all (GTK_WIDGET (side_panel));

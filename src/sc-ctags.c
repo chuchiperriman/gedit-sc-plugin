@@ -18,7 +18,12 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "sc-ctags.h"
+#include <glib/gi18n-lib.h>
 
 /*
  *      This function needs work. Used to be custom parsed for ex searches
@@ -86,7 +91,7 @@ sc_ctags_exec (const gchar *exec, const gchar *filename)
 	g_spawn_command_line_sync (command, &output, NULL, NULL, &error);
 	if (error)
 	{
-		g_critical ("Could not execute ctags: %s\n", error->message);
+		g_critical (_("Could not execute ctags: %s\n"), error->message);
 		g_error_free (error);
 	}
 

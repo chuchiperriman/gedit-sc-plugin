@@ -17,16 +17,20 @@
  *  along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
 #include "sc-provider-csymbols-goto.h"
 #include "sc-symbol.h"
 #include "sc-utils.h"
 #include "sc-ctags.h"
+#include <glib/gi18n-lib.h>
 #include <gtksourceview/gtksourcecompletion.h>
 #include <gtksourceview/gtksourcecompletionitem.h>
 
 #define SC_PROVIDER_CSYMBOLS_GOTO_GET_PRIVATE(object)(G_TYPE_INSTANCE_GET_PRIVATE((object), SC_TYPE_PROVIDER_CSYMBOLS_GOTO, ScProviderCsymbolsGotoPrivate))
 #define SC_SYMBOL_KEY "sc-symbol"
-#define INFO_TMPL "<b>Name:</b> %s\n<b>Type:</b> %s\n<b>Line:</b> %d\n<b>Signature:</b> %s"
 
 static void	 sc_provider_csymbols_goto_iface_init	(GtkSourceCompletionProviderIface *iface);
 
@@ -45,7 +49,7 @@ G_DEFINE_TYPE_WITH_CODE (ScProviderCsymbolsGoto,
 static const gchar * 
 sc_provider_csymbols_goto_get_name (GtkSourceCompletionProvider *self)
 {
-	return "File Symbols Goto";
+	return _("File Symbols Goto");
 }
 
 static GdkPixbuf * 
@@ -76,7 +80,7 @@ sc_provider_csymbols_goto_get_proposals (GtkSourceCompletionProvider *base,
 		for (l = symbols; l != NULL; l = g_list_next (l))
 		{
 			s = SC_SYMBOL (l->data);
-			info = g_strdup_printf (INFO_TMPL, 
+			info = g_strdup_printf (_("<b>Name:</b> %s\n<b>Type:</b> %s\n<b>Line:</b> %d\n<b>Signature:</b> %s"),
 						s->name, 
 						s->type, 
 						s->line, 
