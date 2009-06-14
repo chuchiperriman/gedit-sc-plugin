@@ -1,0 +1,22 @@
+Gedit Source Code Plugin
+===================================
+
+	The Source Code plugin for gedit try to add some
+features related with the application development and the source
+code. The aim for this plugin is implement all of this features:
+
+* Create a Symbols Brower on the left pane
+* Show the current file symbols on the Symbols Browser
+* Add completion (using GtkSourceCompletion library or the
+  GtkSourceView completion if it is available) of the file symbols
+* Project Symbols completion
+* Global Symbols completion
+        
+
+Links
+=====
+
+Project homepage:
+
+https://github.com/chuchiperriman/gedit-sc-plugin/tree
+
