@@ -23,6 +23,7 @@
 #endif
 
 #include "sc-ctags.h"
+#include <gio/gio.h>
 #include <glib/gi18n-lib.h>
 
 /*
@@ -144,4 +145,45 @@ sc_ctags_exec_get_symbols	(const gchar *exec,
 	return list;
 }
 
+GList*
+sc_ctags_get_symbols_from_uri (const gchar *uri)
+{
+	/*TODO Error control*/
+	GFile *file = g_file_new_for_uri (uri);
+	GFileInputStream *is;
+	GDataInputStream *datais;
+	gsize length;
+	gchar *line;
+	GList *list = NULL;
+	ScSymbol *symbol;
+	
+	if (!g_file_is_native (file))
+	{
+		g_object_unref (file);
+		return NULL;
+	}
 
+	is = g_file_read (file, NULL, NULL);
+	if (is == NULL)
+	{
+		g_object_unref (file);
+		return NULL;
+	}
+
+	datais = g_data_input_stream_new (G_INPUT_STREAM (is));
+
+	while ((line = g_data_input_stream_read_line (datais, &length, NULL, NULL)) != NULL)
+	{
+		symbol = sc_ctags_symbol_new_from_line (line);
+		if (symbol)
+		{
+			list = g_list_append (list, symbol);
+		}
+		g_free (line);
+	}
+
+	g_object_unref (datais);
+	g_object_unref (is);
+	g_object_unref (file);
+	return list;
+}

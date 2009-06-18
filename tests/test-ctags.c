@@ -36,6 +36,8 @@ main (int argc, char *argv[])
 	GList	*symbols;
 	GList	*l;
 	ScSymbol	*s;
+	gchar *text;
+	GFile *file;
 	
 	gtk_init_check(&argc, &argv);
 	
@@ -58,5 +60,17 @@ main (int argc, char *argv[])
 		g_object_unref (s);
 	}
 	g_list_free (symbols);
+
+	g_debug ("============= generating SC_TAGS ==============");
+
+	text = sc_ctags_exec (CTAGS_EXEC_PROJECT, "../src");
+	file = g_file_new_for_path ("/tmp/SC_TAGS");
+	if (g_file_replace_contents (file, text, strlen (text), NULL, FALSE, 0, NULL, NULL, NULL))
+		g_debug ("File created on %s", g_file_get_path (file));
+	else
+		g_debug ("Error writing %s file", g_file_get_path (file));
+	
+	g_free (text);
+	
 	return 0;
 }

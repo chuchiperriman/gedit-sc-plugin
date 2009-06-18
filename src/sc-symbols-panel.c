@@ -172,7 +172,6 @@ add_symbol (ScSymbolsPanel *panel,  ScSymbol *symbol)
         if (pixbuf) g_object_unref (pixbuf);
         
         g_free (markup);
-        
         // gtk_tree_view_expand_all (GTK_TREE_VIEW (tree_view));
 }
 
