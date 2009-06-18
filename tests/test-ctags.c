@@ -29,6 +29,7 @@
 #include <gtk/gtk.h>
 #include "../src/sc-symbol.h"
 #include "../src/sc-ctags.h"
+#include "../src/sc-utils.h"
 
 int
 main (int argc, char *argv[])
@@ -71,6 +72,13 @@ main (int argc, char *argv[])
 		g_debug ("Error writing %s file", g_file_get_path (file));
 	
 	g_free (text);
+
+
+	gchar *pro = sc_utils_get_project_dir ("test-ctags.c");
+
+	g_debug ("Project dir: %s", pro);
+
+	g_free(pro);
 	
 	return 0;
 }

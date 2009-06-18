@@ -93,4 +93,67 @@ sc_utils_get_symbol_pixbuf (gchar *type)
 	return pixbuf;
 }
 
+static GFile*
+sc_utils_search_configure (GFile *parent)
+{
+	GFile *reparent;
+	GFile *child;
+	gboolean exists;
+	
+	if (parent == NULL)
+		return NULL;
 
+	g_debug ("buscando :%s", g_file_get_uri(parent));
+	
+	/* Search for the configure or configure.ac or configure.in */
+	child = g_file_get_child (parent, "configure.ac");
+	exists = g_file_query_exists (child, NULL);
+	if (!exists)
+	{
+		g_object_unref (child);
+		child = g_file_get_child (parent, "configure.in");
+		exists = g_file_query_exists (child, NULL);
+	}
+	if (!exists)
+	{
+		g_object_unref (child);
+		child = g_file_get_child (parent, "configure");
+		exists = g_file_query_exists (child, NULL);
+	}
+	if (!exists)
+	{
+		g_object_unref (child);
+		reparent = g_file_get_parent (parent);
+		child = sc_utils_search_configure (reparent);
+		g_object_unref (reparent);
+		return child;
+	}
+	else
+	{
+		g_object_ref (parent);
+		return parent;
+	}
+}
+
+gchar*
+sc_utils_get_project_dir (const gchar *path)
+{
+	GFile *file = g_file_new_for_path (path);
+	GFile *parent = g_file_get_parent (file);
+	GFile *child;
+	gchar *res = NULL;
+	g_debug ("file :%s", g_file_get_uri(file));
+	if (parent != NULL)
+	{
+		child = sc_utils_search_configure (parent);
+		g_object_unref (parent);
+		if (child != NULL)
+		{
+			res = g_file_get_path (child);
+			g_object_unref (child);
+		}
+	}
+
+	g_object_unref (file);
+	return res;
+}

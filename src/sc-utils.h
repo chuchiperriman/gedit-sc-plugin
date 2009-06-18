@@ -29,6 +29,7 @@ G_BEGIN_DECLS
 
 GdkPixbuf	*sc_utils_get_theme_pixbuf 	(gchar *name);
 GdkPixbuf	*sc_utils_get_symbol_pixbuf	(gchar *type);
+gchar           *sc_utils_get_project_dir   (const gchar *path);
 
 G_END_DECLS
 
