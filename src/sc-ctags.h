@@ -22,7 +22,8 @@
 #include "sc-symbol.h"
 
 #define CTAGS_EXEC_FILE "sh -c \"ctags -n --fields=-k-f-s-t+K+l+n+S -f - %s\""
-#define CTAGS_EXEC_PROJECT "sh -c \"ctags -n --fields=-k-f-s-t+K+l+n+S -f - %s/*.[ch]\""
+#define CTAGS_EXEC_PROJECT "sh -c \"ctags -R -n --fields=-k-f-s-t+K+l+n+S -f - --tag-relative=no %s\""
+#define CTAGS_PROJECT_FILE "SC_TAGS"
 #define SYMBOL_TEMPLATE "<b>File:</b> %s\n<b>Type:</b> %s\n<b>Line:</b> %d"
 
 void		 sc_ctags_symbol_free			(ScSymbol *symbol);
@@ -37,5 +38,8 @@ GList		*sc_ctags_get_symbols_from_string	(const gchar *ctags_output);
 GList		*sc_ctags_exec_get_symbols		(const gchar *exec,
 							 const gchar *filename);
 
+GList           *sc_ctags_get_symbols_from_sctags       (const gchar *file);
 
+gchar           *sc_ctags_build_project_sctags          (const gchar *path,
+							 gboolean overwrite);
 

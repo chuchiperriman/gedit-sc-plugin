@@ -37,8 +37,7 @@ main (int argc, char *argv[])
 	GList	*symbols;
 	GList	*l;
 	ScSymbol	*s;
-	gchar *text;
-	GFile *file;
+	gchar *sc_tags;
 	
 	gtk_init_check(&argc, &argv);
 	
@@ -64,16 +63,17 @@ main (int argc, char *argv[])
 
 	g_debug ("============= generating SC_TAGS ==============");
 
-	text = sc_ctags_exec (CTAGS_EXEC_PROJECT, "../src");
-	file = g_file_new_for_path ("/tmp/SC_TAGS");
-	if (g_file_replace_contents (file, text, strlen (text), NULL, FALSE, 0, NULL, NULL, NULL))
-		g_debug ("File created on %s", g_file_get_path (file));
+	sc_tags = sc_ctags_build_project_sctags ("..", TRUE);
+	if (sc_tags)
+	{
+		g_debug ("File SC_TAGS created: %s", sc_tags);
+		g_free (sc_tags);
+	}
 	else
-		g_debug ("Error writing %s file", g_file_get_path (file));
+	{
+		g_debug ("Error creating SC_TAGS");
+	}
 	
-	g_free (text);
-
-
 	gchar *pro = sc_utils_get_project_dir ("test-ctags.c");
 
 	g_debug ("Project dir: %s", pro);

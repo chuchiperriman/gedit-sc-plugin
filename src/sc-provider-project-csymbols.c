@@ -66,16 +66,28 @@ sc_provider_project_csymbols_get_proposals (GtkSourceCompletionProvider *base,
 	GtkSourceCompletionItem *prop;
 	ScSymbol *s;
 	GdkPixbuf *icon;
-	gchar *info;
+	gchar *info, *sctags, *project_dir;
 	
 	gchar *uri = gedit_document_get_uri_for_display (self->priv->document);
 	if (g_file_test (uri, G_FILE_TEST_EXISTS))
 	{
-		symbols = sc_ctags_exec_get_symbols (CTAGS_EXEC_RPOJECT, uri);
+		project_dir = sc_utils_get_project_dir (uri);
+		if (project_dir != NULL)
+		{
+			sctags = sc_ctags_build_project_sctags (project_dir, FALSE);
+			if (sctags != NULL)
+			{
+				symbols = sc_ctags_get_symbols_from_sctags (sctags);
+				g_free (sctags);
+			}
+			g_free (project_dir);
+		}
 	}
 	
 	if (symbols)
 	{
+		/* TODO This function is the same of ScProviderCsymbols,
+		   share it!!! */
 		for (l = symbols; l != NULL; l = g_list_next (l))
 		{
 			s = SC_SYMBOL (l->data);
@@ -93,6 +105,8 @@ sc_provider_project_csymbols_get_proposals (GtkSourceCompletionProvider *base,
 		}
 		g_list_free (symbols);
 	}
+
+	g_free (uri);
 	
 	return list;
 }
@@ -112,8 +126,7 @@ sc_provider_project_csymbols_filter_proposal (GtkSourceCompletionProvider *provi
 static const gchar *
 sc_provider_project_csymbols_get_capabilities (GtkSourceCompletionProvider *provider)
 {
-	return GTK_SOURCE_COMPLETION_CAPABILITY_INTERACTIVE ","
-	       GTK_SOURCE_COMPLETION_CAPABILITY_AUTOMATIC;
+	return GTK_SOURCE_COMPLETION_CAPABILITY_AUTOMATIC;
 }
 
 static void 

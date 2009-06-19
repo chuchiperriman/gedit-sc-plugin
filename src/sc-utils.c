@@ -77,7 +77,6 @@ sc_utils_get_theme_pixbuf (gchar *name)
 		g_warning (_("Couldn't load icon: %s"), error->message);
 		g_error_free (error);
 	}
-	
         return pixbuf;
 }
 

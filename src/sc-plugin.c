@@ -30,6 +30,7 @@
 #include "sc-plugin.h"
 #include "sc-utils.h"
 #include "sc-provider-csymbols.h"
+#include "sc-provider-project-csymbols.h"
 #include "sc-provider-csymbols-goto.h"
 #include "sc-symbols-panel.h"
 #include "sc-ctags.h"
@@ -37,10 +38,12 @@
 #define SC_PLUGIN_GET_PRIVATE(object)	(G_TYPE_INSTANCE_GET_PRIVATE ((object), SC_TYPE_PLUGIN, ScPluginPrivate))
 #define document_get_provider_symbols(doc) (GTK_SOURCE_COMPLETION_PROVIDER (g_object_get_data (G_OBJECT (doc), SC_PROVIDER_SYMBOLS_KEY)))
 #define document_get_provider_symbols_goto(doc) (GTK_SOURCE_COMPLETION_PROVIDER (g_object_get_data (G_OBJECT (doc), SC_PROVIDER_SYMBOLS_GOTO_KEY)))
+#define document_get_provider_project_symbols(doc) (GTK_SOURCE_COMPLETION_PROVIDER (g_object_get_data (G_OBJECT (doc), SC_PROVIDER_PROJECT_SYMBOLS_KEY)))
 
 #define SC_STOCK_ICONS "sc-stock-icons"
 #define SC_PROVIDER_SYMBOLS_KEY "sc-provider-symbols"
 #define SC_PROVIDER_SYMBOLS_GOTO_KEY "sc-provider-symbols-goto"
+#define SC_PROVIDER_PROJECT_SYMBOLS_KEY "sc-provider-project-symbols"
 
 const gchar* ICONS[] = {
 	"symbol-class.png",
@@ -187,17 +190,22 @@ document_enable (ScPlugin *self, GeditDocument *doc)
 	GeditTab *tab = gedit_tab_get_from_document (doc);
 	GeditView *view = gedit_tab_get_view (tab);
 	GtkSourceCompletion *comp = gtk_source_view_get_completion (GTK_SOURCE_VIEW (view));
-	GtkSourceCompletionProvider *prov, *prov_goto;
+	GtkSourceCompletionProvider *prov;
 
 	prov = GTK_SOURCE_COMPLETION_PROVIDER(sc_provider_csymbols_new (doc));
 	gtk_source_completion_add_provider (comp, prov, NULL);
 	g_object_set_data (G_OBJECT (doc), SC_PROVIDER_SYMBOLS_KEY, prov);
 	g_object_unref (prov);
 	
-	prov_goto = GTK_SOURCE_COMPLETION_PROVIDER(sc_provider_csymbols_goto_new (doc));
-	gtk_source_completion_add_provider (comp, prov_goto, NULL);
-	g_object_set_data (G_OBJECT (doc), SC_PROVIDER_SYMBOLS_GOTO_KEY, prov_goto);
-	g_object_unref (prov_goto);
+	prov = GTK_SOURCE_COMPLETION_PROVIDER(sc_provider_csymbols_goto_new (doc));
+	gtk_source_completion_add_provider (comp, prov, NULL);
+	g_object_set_data (G_OBJECT (doc), SC_PROVIDER_SYMBOLS_GOTO_KEY, prov);
+	g_object_unref (prov);
+
+	prov = GTK_SOURCE_COMPLETION_PROVIDER(sc_provider_project_csymbols_new (doc));
+	gtk_source_completion_add_provider (comp, prov, NULL);
+	g_object_set_data (G_OBJECT (doc), SC_PROVIDER_PROJECT_SYMBOLS_KEY, prov);
+	g_object_unref (prov);
 	
 	g_signal_connect (view, "key-press-event",
 			  G_CALLBACK (view_key_press_event_cb),
@@ -216,6 +224,8 @@ document_disable (ScPlugin *self, GeditDocument *doc)
 	prov = document_get_provider_symbols (doc);
 	gtk_source_completion_remove_provider (completion, prov, NULL);
 	prov = document_get_provider_symbols_goto (doc);
+	gtk_source_completion_remove_provider (completion, prov, NULL);
+	prov = document_get_provider_project_symbols (doc);
 	gtk_source_completion_remove_provider (completion, prov, NULL);
 
 	g_signal_handlers_disconnect_by_func (view,

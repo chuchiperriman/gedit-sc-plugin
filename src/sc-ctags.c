@@ -146,17 +146,17 @@ sc_ctags_exec_get_symbols	(const gchar *exec,
 }
 
 GList*
-sc_ctags_get_symbols_from_uri (const gchar *uri)
+sc_ctags_get_symbols_from_sctags (const gchar *sctags_path)
 {
 	/*TODO Error control*/
-	GFile *file = g_file_new_for_uri (uri);
+	GFile *file = g_file_new_for_path (sctags_path);
 	GFileInputStream *is;
 	GDataInputStream *datais;
 	gsize length;
 	gchar *line;
 	GList *list = NULL;
 	ScSymbol *symbol;
-	
+
 	if (!g_file_is_native (file))
 	{
 		g_object_unref (file);
@@ -186,4 +186,45 @@ sc_ctags_get_symbols_from_uri (const gchar *uri)
 	g_object_unref (is);
 	g_object_unref (file);
 	return list;
+}
+
+gchar*
+sc_ctags_build_project_sctags (const gchar *path, gboolean overwrite)
+{
+	gchar *content;
+	gchar *sc_tags;
+	GFile *file;
+	gboolean generated = FALSE;
+	gboolean exists;
+	
+	g_return_val_if_fail (path != NULL, FALSE);
+	g_return_val_if_fail (g_file_test (path, G_FILE_TEST_IS_DIR), FALSE);
+	
+	sc_tags = g_strdup_printf ("%s/%s", path, CTAGS_PROJECT_FILE);
+	file = g_file_new_for_path (sc_tags);
+
+	exists = g_file_query_exists (file, NULL);
+	if (overwrite || !exists)
+	{
+		content = sc_ctags_exec (CTAGS_EXEC_PROJECT, path);
+		if (content != NULL)
+		{
+			g_debug ("generated SC_TAGS");
+			generated = g_file_replace_contents (file,
+							     content,
+							     strlen (content),
+							     NULL, FALSE, 0, NULL,
+							     NULL, NULL);
+			g_free (content);
+		}
+	}
+	g_object_unref (file);
+
+	if (!generated && !exists)
+	{
+		g_free (sc_tags);
+		sc_tags = NULL;
+	}
+	
+	return sc_tags;
 }
