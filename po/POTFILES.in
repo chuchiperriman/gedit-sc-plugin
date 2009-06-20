@@ -6,3 +6,4 @@ src/sc-provider-csymbols.c
 src/sc-provider-project-csymbols.c
 src/sc-utils.c
 src/sc-symbols-panel.c
+src/sc-menu.c

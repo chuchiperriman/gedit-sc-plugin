@@ -31,6 +31,8 @@ libsourcecompletion_la_SOURCES = 	\
 	sc-provider-project-csymbols.c	\
 	sc-symbols-panel.h		\
 	sc-symbols-panel.c		\
+	sc-menu.h			\
+	sc-menu.c			\
 	sc-plugin.h			\
 	sc-plugin.c
 

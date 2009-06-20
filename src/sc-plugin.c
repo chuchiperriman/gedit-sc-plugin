@@ -28,6 +28,7 @@
 #include <gedit/gedit-debug.h>
 
 #include "sc-plugin.h"
+#include "sc-menu.h"
 #include "sc-utils.h"
 #include "sc-provider-csymbols.h"
 #include "sc-provider-project-csymbols.h"
@@ -62,9 +63,10 @@ const gchar* ICONS[] = {
 
 struct _ScPluginPrivate
 {
-	GeditWindow *gedit_window;
-	GtkWidget *window;
-	GtkWidget *panel;
+	GeditWindow	*gedit_window;
+	GtkWidget 	*window;
+	GtkWidget 	*panel;
+	ScMenu		*menu;
 };
 
 typedef struct _ViewAndCompletion ViewAndCompletion;
@@ -240,9 +242,11 @@ impl_activate (GeditPlugin *plugin,
 	GList *docs, *l;
 	GeditDocument *doc;
 	ScPlugin * self = SC_PLUGIN(plugin);
-	self->priv->gedit_window = window;
+
 	gedit_debug (DEBUG_PLUGINS);
 	
+	self->priv->gedit_window = window;
+		
 	create_panel (plugin, window);
 	
 	g_signal_connect (window, "active-tab-changed",
@@ -253,6 +257,10 @@ impl_activate (GeditPlugin *plugin,
 			  G_CALLBACK (tab_state_changed_cb),
 			  self);
 
+	/* Adding the menu */
+	self->priv->menu = sc_menu_new (window);
+	sc_menu_enable (self->priv->menu);
+		
 	docs = gedit_window_get_documents (window);
 	for (l = docs; l != NULL; l = g_list_next (l))
 	{
@@ -281,6 +289,9 @@ impl_deactivate (GeditPlugin *plugin,
 					      self);
 	side_panel = gedit_window_get_side_panel (window);
 	gedit_panel_remove_item (side_panel, self->priv->panel);
+
+	sc_menu_disable (self->priv->menu);
+	self->priv->menu = NULL;
 
 	docs = gedit_window_get_documents (window);
 	for (l = docs; l != NULL; l = g_list_next (l))
