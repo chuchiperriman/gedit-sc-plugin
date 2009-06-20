@@ -62,11 +62,8 @@ sc_provider_project_csymbols_get_proposals (GtkSourceCompletionProvider *base,
                                  GtkTextIter                 *iter)
 {
 	ScProviderProjectCsymbols *self = SC_PROVIDER_PROJECT_CSYMBOLS (base);
-	GList *list = NULL, *symbols = NULL, *l;
-	GtkSourceCompletionItem *prop;
-	ScSymbol *s;
-	GdkPixbuf *icon;
-	gchar *info, *sctags, *project_dir;
+	GList *symbols = NULL;
+	gchar *sctags, *project_dir;
 	
 	gchar *uri = gedit_document_get_uri_for_display (self->priv->document);
 	if (g_file_test (uri, G_FILE_TEST_EXISTS))
@@ -86,29 +83,12 @@ sc_provider_project_csymbols_get_proposals (GtkSourceCompletionProvider *base,
 	
 	if (symbols)
 	{
-		/* TODO This function is the same of ScProviderCsymbols,
-		   share it!!! */
-		for (l = symbols; l != NULL; l = g_list_next (l))
-		{
-			s = SC_SYMBOL (l->data);
-			info = NULL;
-			if (s->signature)
-			{
-				info = g_strdup_printf ("<b>%s</b> %s", s->name, s->signature);
-			}
-			icon = sc_utils_get_symbol_pixbuf (s->type);
-			prop = gtk_source_completion_item_new (s->name, s->name, icon, info);
-			list = g_list_append (list, prop);
-			g_free (info);
-			g_object_unref (icon);
-			g_object_unref (s);
-		}
-		g_list_free (symbols);
+		symbols = sc_utils_symbols_to_proposals_without_dup (symbols);
 	}
 
 	g_free (uri);
 	
-	return list;
+	return symbols;
 }
 
 static gboolean

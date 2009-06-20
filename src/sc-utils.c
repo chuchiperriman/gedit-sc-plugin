@@ -24,6 +24,7 @@
 
 #include "sc-utils.h"
 #include <glib/gi18n-lib.h>
+#include <gtksourceview/gtksourcecompletionitem.h>
 
 #define SC_STOCK_ICONS "sc-stock-icons"
 
@@ -102,8 +103,6 @@ sc_utils_search_configure (GFile *parent)
 	if (parent == NULL)
 		return NULL;
 
-	g_debug ("buscando :%s", g_file_get_uri(parent));
-	
 	/* Search for the configure or configure.ac or configure.in */
 	child = g_file_get_child (parent, "configure.ac");
 	exists = g_file_query_exists (child, NULL);
@@ -141,7 +140,7 @@ sc_utils_get_project_dir (const gchar *path)
 	GFile *parent = g_file_get_parent (file);
 	GFile *child;
 	gchar *res = NULL;
-	g_debug ("file :%s", g_file_get_uri(file));
+
 	if (parent != NULL)
 	{
 		child = sc_utils_search_configure (parent);
@@ -155,4 +154,90 @@ sc_utils_get_project_dir (const gchar *path)
 
 	g_object_unref (file);
 	return res;
+}
+
+GtkSourceCompletionItem*
+sc_utils_symbol_to_proposal (ScSymbol *s)
+{
+	GdkPixbuf *icon;
+	gchar *info = NULL;
+	GtkSourceCompletionItem *prop;
+
+	g_return_val_if_fail (s != NULL, NULL);
+	
+	if (s->signature)
+	{
+		info = g_strdup_printf ("<b>%s</b> %s", s->name, s->signature);
+	}
+	icon = sc_utils_get_symbol_pixbuf (s->type);
+	prop = gtk_source_completion_item_new (s->name, s->name, icon, info);
+	g_free (info);
+	g_object_unref (icon);
+
+	return prop;
+}
+
+/**
+   Free all the symbols and the symbols list.
+   Return a list of GtkSourceCompletionItem
+ */
+GList*
+sc_utils_symbols_to_proposals (GList *symbols)
+{
+	GList *list = NULL, *l;
+	GtkSourceCompletionItem *prop;
+	ScSymbol *s;
+
+	if (symbols == NULL)
+		return NULL;
+	
+	for (l = symbols; l != NULL; l = g_list_next (l))
+	{
+		s = SC_SYMBOL (l->data);
+		prop = sc_utils_symbol_to_proposal (s);
+		list = g_list_append (list, prop);
+		g_object_unref (s);
+	}
+	g_list_free (symbols);
+	return list;
+}
+
+/**
+   Free all the symbols and the symbols list.
+   Inserts only the first ocurrence of a symbol name
+   Return a list of GtkSourceCompletionItem
+ */
+GList*
+sc_utils_symbols_to_proposals_without_dup (GList *symbols)
+{
+	GHashTable *table;
+	GList *list = NULL, *l;
+	GtkSourceCompletionItem *prop;
+	ScSymbol *s;
+	gpointer *temp;
+
+	if (symbols == NULL)
+		return NULL;
+
+	table = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, g_object_unref);
+	
+	for (l = symbols; l != NULL; l = g_list_next (l))
+	{
+		s = SC_SYMBOL (l->data);
+		temp = g_hash_table_lookup (table, s->name);
+		if (temp == NULL)
+		{
+			prop = sc_utils_symbol_to_proposal (s);
+			list = g_list_append (list, prop);
+			g_hash_table_insert (table, s->name, s);
+			/*This symbol will be freed with the table*/
+		}
+		else
+		{
+			g_object_unref (s);
+		}
+	}
+	g_hash_table_unref (table);
+	g_list_free (symbols);
+	return list;
 }

@@ -21,15 +21,18 @@
 #ifndef __SC_UTILS_H__
 #define __SC_UTILS_H__
 
+#include "sc-symbol.h"
 #include <gtk/gtk.h>
 
 G_BEGIN_DECLS
 
 #define SC_APP_ICON_NAME "gedit-sc-plugin"
 
-GdkPixbuf	*sc_utils_get_theme_pixbuf 	(gchar *name);
-GdkPixbuf	*sc_utils_get_symbol_pixbuf	(gchar *type);
-gchar           *sc_utils_get_project_dir   (const gchar *path);
+GdkPixbuf	*sc_utils_get_theme_pixbuf			(gchar *name);
+GdkPixbuf	*sc_utils_get_symbol_pixbuf			(gchar *type);
+gchar           *sc_utils_get_project_dir			(const gchar *path);
+GList		*sc_utils_symbols_to_proposals			(GList *symbols);
+GList		*sc_utils_symbols_to_proposals_without_dup	(GList *symbols);
 
 G_END_DECLS
 
