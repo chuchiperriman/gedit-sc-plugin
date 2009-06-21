@@ -104,6 +104,7 @@ static const gchar *ui_str =
 	"    <placeholder name='ExtraMenu_1'>"
 	"      <menu name='SourceCodeMenu' action='SourceCodeAction'>"
 	"        <menuitem name='GenerateTags' action='GenerateTagsAction'/>"
+	"        <placeholder name='ScMainPlaceholder'/>"
 	"      </menu>"
 	"    </placeholder>"
         "  </menubar>"
@@ -177,4 +178,32 @@ sc_menu_disable (ScMenu *self)
         gtk_ui_manager_remove_action_group (manager, data->action_group);
 
         g_object_set_data (G_OBJECT (self->priv->window), WINDOW_DATA_KEY, NULL);
+}
+
+void
+sc_menu_insert_main_actions (ScMenu *self, const GtkActionEntry *entries, gint n_entries)
+{
+	GtkUIManager *manager;
+        WindowData *data;
+	gint i;
+
+	g_return_if_fail (entries != NULL);
+	
+        manager = gedit_window_get_ui_manager (self->priv->window);
+	data = get_plugin_data (self->priv->window);
+	g_return_if_fail (data != NULL);
+
+        gtk_action_group_add_actions (data->action_group,
+                                      entries,
+                                      n_entries,
+                                      self->priv->window);
+	for (i=0;i < n_entries;i++)
+	{
+		gtk_ui_manager_add_ui (manager, data->ui_id,
+				       "/MenuBar/ExtraMenu_1/SourceCodeMenu/ScMainPlaceholder",
+				       entries[i].name,
+				       entries[i].name,
+				       GTK_UI_MANAGER_MENUITEM,
+				       FALSE);
+	}
 }
