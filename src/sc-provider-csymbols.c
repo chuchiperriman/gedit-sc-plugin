@@ -69,18 +69,18 @@ sc_provider_csymbols_populate (GtkSourceCompletionProvider	*base,
 	gchar *word;
 	ScSymbol *s;
 	
-	gchar *uri = gedit_document_get_uri_for_display (self->priv->document);
-	if (g_file_test (uri, G_FILE_TEST_EXISTS))
-	{
-		symbols = sc_ctags_exec_get_symbols (CTAGS_EXEC_FILE, uri);
-	}
-	
 	word = ch_completion_get_word (GTK_SOURCE_BUFFER (self->priv->document));
 	
 	if (word)
 	{
 		if (g_utf8_strlen (word, -1) > 2)
 		{
+			gchar *uri = gedit_document_get_uri_for_display (self->priv->document);
+			if (g_file_test (uri, G_FILE_TEST_EXISTS))
+			{
+				symbols = sc_ctags_exec_get_symbols (CTAGS_EXEC_FILE, uri);
+			}
+	
 			for (l = symbols; l != NULL; l = g_list_next (l))
 			{
 				s = (ScSymbol*)l->data;

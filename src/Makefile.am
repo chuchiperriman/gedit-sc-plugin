@@ -29,6 +29,8 @@ libsourcecompletion_la_SOURCES = 	\
 	sc-provider-csymbols.c		\
 	sc-provider-csymbols-goto.h	\
 	sc-provider-csymbols-goto.c	\
+	sc-provider-project-csymbols.h	\
+	sc-provider-project-csymbols.c	\
 	sc-symbols-panel.h		\
 	sc-symbols-panel.c		\
 	sc-menu.h			\

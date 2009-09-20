@@ -16,8 +16,8 @@
  *  You should have received a copy of the GNU Lesser General Public License
  *  along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
  */
-#ifndef __PROVIDER_CSYMBOLS_H__
-#define __PROVIDER_CSYMBOLS_H__
+#ifndef __SC_PROVIDER_CSYMBOLS_H__
+#define __SC_PROVIDER_CSYMBOLS_H__
 
 #include <glib.h>
 #include <glib-object.h>

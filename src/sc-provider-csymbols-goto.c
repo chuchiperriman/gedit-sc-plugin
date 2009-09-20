@@ -25,6 +25,7 @@
 #include "sc-symbol.h"
 #include "sc-utils.h"
 #include "sc-ctags.h"
+#include "chcompletionutils.h"
 #include <glib/gi18n-lib.h>
 #include <gtksourceview/gtksourcecompletion.h>
 #include <gtksourceview/gtksourcecompletionitem.h>
@@ -73,21 +74,34 @@ sc_provider_csymbols_goto_populate (GtkSourceCompletionProvider	*base,
 	gchar *uri = gedit_document_get_uri_for_display (self->priv->document);
 	if (g_file_test (uri, G_FILE_TEST_EXISTS))
 	{
+		/*TODO We cannot recalculate the symbols all the time, we must have a cache*/
 		symbols = sc_ctags_exec_get_symbols (CTAGS_EXEC_FILE, uri);
 	}
 	
 	if (!symbols)
+	{
+		gtk_source_completion_context_add_proposals (context,
+							     base,
+							     NULL,
+							     TRUE);
 		return;	
+	}
 	
 	word = ch_completion_get_word (GTK_SOURCE_BUFFER (self->priv->document));
 	
 	if (!word)
+	{
+		gtk_source_completion_context_add_proposals (context,
+							     base,
+							     NULL,
+							     TRUE);
 		return;
+	}
 	
 	for (l = symbols; l != NULL; l = g_list_next (l))
 	{
 		s = SC_SYMBOL (l->data);
-		if (g_utf8_strlen (word, -1) > 2)
+		if (g_utf8_strlen (word, -1) > 2 && g_str_has_prefix (s->name, word))
 		{
 			info = g_strdup_printf (_("<b>Name:</b> %s\n<b>Type:</b> %s\n<b>Line:</b> %d\n<b>Signature:</b> %s"),
 						s->name, 
@@ -120,6 +134,12 @@ sc_provider_csymbols_goto_match (GtkSourceCompletionProvider	*provider,
 				 GtkSourceCompletionContext	*context)
 {
 	return TRUE;
+}
+
+static gboolean
+sc_provider_csymbols_goto_get_interactive (GtkSourceCompletionProvider *provider)
+{
+	return FALSE;
 }
 
 static gboolean
@@ -167,7 +187,7 @@ sc_provider_csymbols_goto_iface_init (GtkSourceCompletionProviderIface *iface)
 
 	iface->populate = sc_provider_csymbols_goto_populate;
 	iface->match = sc_provider_csymbols_goto_match;
-
+	iface->get_interactive = sc_provider_csymbols_goto_get_interactive;
 	iface->activate_proposal = sc_provider_csymbols_goto_activate_proposal;
 }
 

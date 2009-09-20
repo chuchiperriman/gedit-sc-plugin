@@ -25,6 +25,7 @@
 #include "sc-symbol.h"
 #include "sc-utils.h"
 #include "sc-ctags.h"
+#include "chcompletionutils.h"
 #include <glib/gi18n-lib.h>
 #include <gtksourceview/gtksourcecompletion.h>
 #include <gtksourceview/gtksourcecompletionitem.h>
@@ -57,56 +58,75 @@ sc_provider_project_csymbols_get_icon (GtkSourceCompletionProvider *self)
 	return SC_PROVIDER_PROJECT_CSYMBOLS (self)->priv->provider_icon;
 }
 
-static GList *
-sc_provider_project_csymbols_get_proposals (GtkSourceCompletionProvider *base,
-                                 GtkTextIter                 *iter)
+static gboolean
+sc_provider_project_csymbols_match (GtkSourceCompletionProvider	*provider,
+				    GtkSourceCompletionContext	*context)
+{
+	return TRUE;
+}
+
+static void
+sc_provider_project_csymbols_populate (GtkSourceCompletionProvider	*base,
+				       GtkSourceCompletionContext	*context)
 {
 	ScProviderProjectCsymbols *self = SC_PROVIDER_PROJECT_CSYMBOLS (base);
-	GList *symbols = NULL;
-	gchar *sctags, *project_dir;
+	GList *symbols = NULL, *res = NULL, *l;
+	gchar *sctags, *project_dir, *word;
+	ScSymbol *s;
 	
-	gchar *uri = gedit_document_get_uri_for_display (self->priv->document);
-	if (g_file_test (uri, G_FILE_TEST_EXISTS))
+	word = ch_completion_get_word (GTK_SOURCE_BUFFER (self->priv->document));
+	
+	if (word)
 	{
-		project_dir = sc_utils_get_project_dir (uri);
-		if (project_dir != NULL)
+		if (g_utf8_strlen (word, -1) > 2)
 		{
-			sctags = sc_ctags_build_project_sctags (project_dir, FALSE);
-			if (sctags != NULL)
+			gchar *uri = gedit_document_get_uri_for_display (self->priv->document);
+			if (g_file_test (uri, G_FILE_TEST_EXISTS))
 			{
-				symbols = sc_ctags_get_symbols_from_sctags (sctags);
-				g_free (sctags);
+				project_dir = sc_utils_get_project_dir (uri);
+				if (project_dir != NULL)
+				{
+					sctags = sc_ctags_build_project_sctags (project_dir, FALSE);
+					if (sctags != NULL)
+					{
+						symbols = sc_ctags_get_symbols_from_sctags (sctags);
+						g_free (sctags);
+					}
+					g_free (project_dir);
+				}
 			}
-			g_free (project_dir);
+	
+			if (symbols)
+			{
+				for (l = symbols; l != NULL; l = g_list_next (l))
+				{
+					s = (ScSymbol*)l->data;
+					if (g_str_has_prefix (s->name, word))
+					{
+						res = g_list_append (res, s);
+					}
+					else
+					{
+						g_object_unref (s);
+					}
+				}
+				g_list_free (symbols);
+			}
+			g_free (uri);
 		}
+		
+		g_free (word);
 	}
 	
-	if (symbols)
+	if (res)
 	{
-		symbols = sc_utils_symbols_to_proposals_without_dup (symbols);
+		res = sc_utils_symbols_to_proposals_without_dup (res);
 	}
-
-	g_free (uri);
 	
-	return symbols;
-}
-
-static gboolean
-sc_provider_project_csymbols_filter_proposal (GtkSourceCompletionProvider *provider,
-                                   GtkSourceCompletionProposal *proposal,
-                                   GtkTextIter                 *iter,
-                                   const gchar                 *criteria)
-{
-	const gchar *label;
-	
-	label = gtk_source_completion_proposal_get_label (proposal);
-	return g_str_has_prefix (label, criteria);
-}
-
-static const gchar *
-sc_provider_project_csymbols_get_capabilities (GtkSourceCompletionProvider *provider)
-{
-	return GTK_SOURCE_COMPLETION_CAPABILITY_AUTOMATIC;
+	gtk_source_completion_context_add_proposals (context,
+						     base,
+						     res,
+						     TRUE);
 }
 
 static void 
@@ -138,9 +158,8 @@ sc_provider_project_csymbols_iface_init (GtkSourceCompletionProviderIface *iface
 	iface->get_name = sc_provider_project_csymbols_get_name;
 	iface->get_icon = sc_provider_project_csymbols_get_icon;
 
-	iface->get_proposals = sc_provider_project_csymbols_get_proposals;
-	iface->filter_proposal = sc_provider_project_csymbols_filter_proposal;
-	iface->get_capabilities = sc_provider_project_csymbols_get_capabilities;
+	iface->populate = sc_provider_project_csymbols_populate;
+	iface->match = sc_provider_project_csymbols_match;
 }
 
 static void 
