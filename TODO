@@ -1,0 +1,2 @@
+* Enable <control>M completion again
+* We need store the symbols without reload it all the time
