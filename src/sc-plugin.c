@@ -31,8 +31,10 @@
 #include "sc-menu.h"
 #include "sc-utils.h"
 #include "sc-provider-csymbols.h"
-#include "sc-provider-project-csymbols.h"
 #include "sc-provider-csymbols-goto.h"
+/*
+#include "sc-provider-project-csymbols.h"
+*/
 #include "sc-symbols-panel.h"
 #include "sc-ctags.h"
 
@@ -119,6 +121,7 @@ view_key_press_event_cb (GtkWidget *view,
 	
         if (s == GDK_CONTROL_MASK && event->keyval == GDK_m)
         {
+		/*	
         	GList *providers = g_list_append (NULL, document_get_provider_symbols_goto(doc));
 		gtk_source_completion_show (comp,
 					    providers,
@@ -126,6 +129,7 @@ view_key_press_event_cb (GtkWidget *view,
 					    NULL);
 		g_list_free (providers);
                 return TRUE;
+                */
         }
 
         return FALSE;
@@ -199,16 +203,18 @@ document_enable (ScPlugin *self, GeditDocument *doc)
 	g_object_set_data (G_OBJECT (doc), SC_PROVIDER_SYMBOLS_KEY, prov);
 	g_object_unref (prov);
 	
+	
 	prov = GTK_SOURCE_COMPLETION_PROVIDER(sc_provider_csymbols_goto_new (doc));
 	gtk_source_completion_add_provider (comp, prov, NULL);
 	g_object_set_data (G_OBJECT (doc), SC_PROVIDER_SYMBOLS_GOTO_KEY, prov);
 	g_object_unref (prov);
 
+	/*
 	prov = GTK_SOURCE_COMPLETION_PROVIDER(sc_provider_project_csymbols_new (doc));
 	gtk_source_completion_add_provider (comp, prov, NULL);
 	g_object_set_data (G_OBJECT (doc), SC_PROVIDER_PROJECT_SYMBOLS_KEY, prov);
 	g_object_unref (prov);
-	
+	*/
 	g_signal_connect (view, "key-press-event",
 			  G_CALLBACK (view_key_press_event_cb),
 			  self);

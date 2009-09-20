@@ -15,6 +15,8 @@ AM_CFLAGS =\
 plugin_LTLIBRARIES = libsourcecompletion.la
 
 libsourcecompletion_la_SOURCES = 	\
+	chcompletionutils.h		\
+	chcompletionutils.c		\
 	sc-utils.h			\
 	sc-utils.c			\
 	sc-symbol.h			\
@@ -27,8 +29,6 @@ libsourcecompletion_la_SOURCES = 	\
 	sc-provider-csymbols.c		\
 	sc-provider-csymbols-goto.h	\
 	sc-provider-csymbols-goto.c	\
-	sc-provider-project-csymbols.h	\
-	sc-provider-project-csymbols.c	\
 	sc-symbols-panel.h		\
 	sc-symbols-panel.c		\
 	sc-menu.h			\

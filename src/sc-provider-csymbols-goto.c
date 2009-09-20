@@ -58,9 +58,9 @@ sc_provider_csymbols_goto_get_icon (GtkSourceCompletionProvider *self)
 	return SC_PROVIDER_CSYMBOLS_GOTO (self)->priv->provider_icon;
 }
 
-static GList *
-sc_provider_csymbols_goto_get_proposals (GtkSourceCompletionProvider *base,
-                                 GtkTextIter                 *iter)
+static void
+sc_provider_csymbols_goto_populate (GtkSourceCompletionProvider	*base,
+				    GtkSourceCompletionContext	*context)
 {
 	ScProviderCsymbolsGoto *self = SC_PROVIDER_CSYMBOLS_GOTO (base);
 	GList *list = NULL, *symbols = NULL, *l;
@@ -68,6 +68,7 @@ sc_provider_csymbols_goto_get_proposals (GtkSourceCompletionProvider *base,
 	ScSymbol *s;
 	GdkPixbuf *icon;
 	gchar *info;
+	gchar *word;
 	
 	gchar *uri = gedit_document_get_uri_for_display (self->priv->document);
 	if (g_file_test (uri, G_FILE_TEST_EXISTS))
@@ -75,47 +76,50 @@ sc_provider_csymbols_goto_get_proposals (GtkSourceCompletionProvider *base,
 		symbols = sc_ctags_exec_get_symbols (CTAGS_EXEC_FILE, uri);
 	}
 	
-	if (symbols)
+	if (!symbols)
+		return;	
+	
+	word = ch_completion_get_word (GTK_SOURCE_BUFFER (self->priv->document));
+	
+	if (!word)
+		return;
+	
+	for (l = symbols; l != NULL; l = g_list_next (l))
 	{
-		for (l = symbols; l != NULL; l = g_list_next (l))
+		s = SC_SYMBOL (l->data);
+		if (g_utf8_strlen (word, -1) > 2)
 		{
-			s = SC_SYMBOL (l->data);
 			info = g_strdup_printf (_("<b>Name:</b> %s\n<b>Type:</b> %s\n<b>Line:</b> %d\n<b>Signature:</b> %s"),
 						s->name, 
 						s->type, 
 						s->line, 
 						s->signature != NULL ? s->signature : "");
-		
+	
 			icon = sc_utils_get_symbol_pixbuf (s->type);
 			prop = gtk_source_completion_item_new (s->name, s->name, icon, info);
 			g_object_set_data_full (G_OBJECT (prop), SC_SYMBOL_KEY, g_object_ref (s), g_object_unref);
 			list = g_list_append (list, prop);
 			g_free (info);
 			g_object_unref (icon);
-			g_object_unref (s);
 		}
-		g_list_free (symbols);
+		g_object_unref (s);
 	}
+
+	g_free (word);
+	g_list_free (symbols);
 	
-	return list;
+	gtk_source_completion_context_add_proposals (context,
+						     base,
+						     list,
+						     TRUE);
+	g_list_free (list);
 }
 
 static gboolean
-sc_provider_csymbols_goto_filter_proposal (GtkSourceCompletionProvider *provider,
-                                   GtkSourceCompletionProposal *proposal,
-                                   GtkTextIter                 *iter,
-                                   const gchar                 *criteria)
+sc_provider_csymbols_goto_match (GtkSourceCompletionProvider	*provider,
+				 GtkSourceCompletionContext	*context)
 {
-	const gchar *label;
-	
-	label = gtk_source_completion_proposal_get_label (proposal);
-	return g_str_has_prefix (label, criteria);
-}
-
-static const gchar *
-sc_provider_csymbols_goto_get_capabilities (GtkSourceCompletionProvider *provider)
-{
-	return NULL;
+	return TRUE;
 }
 
 static gboolean
@@ -161,9 +165,9 @@ sc_provider_csymbols_goto_iface_init (GtkSourceCompletionProviderIface *iface)
 	iface->get_name = sc_provider_csymbols_goto_get_name;
 	iface->get_icon = sc_provider_csymbols_goto_get_icon;
 
-	iface->get_proposals = sc_provider_csymbols_goto_get_proposals;
-	iface->filter_proposal = sc_provider_csymbols_goto_filter_proposal;
-	iface->get_capabilities = sc_provider_csymbols_goto_get_capabilities;
+	iface->populate = sc_provider_csymbols_goto_populate;
+	iface->match = sc_provider_csymbols_goto_match;
+
 	iface->activate_proposal = sc_provider_csymbols_goto_activate_proposal;
 }
 
