@@ -1,43 +1,99 @@
-/* sc-language-manager.c */
+/*
+ * sclanguagemanager.c
+ *
+ * Copyright (C) 2009 Jesús Barbero Rodríguez <chuchiperriman@gmail.com>
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, 
+ * Boston, MA 02111-1307, USA.
+ */
 
 #include "sc-language-manager.h"
 
-G_DEFINE_TYPE (ScLanguageManager, sc_language_manager, G_TYPE_OBJECT)
-
-#define GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), SC_TYPE_LANGUAGE_MANAGER, ScLanguageManagerPrivate))
-
-typedef struct _ScLanguageManagerPrivate ScLanguageManagerPrivate;
-
-struct _ScLanguageManagerPrivate {
-    int dummy;
-};
-
-static void
-sc_language_manager_finalize (GObject *object)
+static const gchar *
+sc_language_manager_get_language_default (ScLanguageManager *lm)
 {
-  G_OBJECT_CLASS (sc_language_manager_parent_class)->finalize (object);
-}
-
-
-static void
-sc_language_manager_class_init (ScLanguageManagerClass *klass)
-{
-  GObjectClass *object_class = G_OBJECT_CLASS (klass);
-
-  g_type_class_add_private (klass, sizeof (ScLanguageManagerPrivate));
-
-  object_class->finalize = sc_language_manager_finalize;
+	return NULL;
 }
 
 static void
-sc_language_manager_init (ScLanguageManager *self)
+sc_language_manager_set_active_default (ScLanguageManager	*lm,
+					gboolean		 active)
 {
+	return;
 }
 
-ScLanguageManager*
-sc_language_manager_new (void)
+static void 
+sc_language_manager_init (ScLanguageManagerIface *iface)
 {
-  return g_object_new (SC_TYPE_LANGUAGE_MANAGER, NULL);
+	static gboolean initialized = FALSE;
+	
+	iface->get_language = sc_language_manager_get_language_default;
+	iface->set_active = sc_language_manager_set_active_default;
+	
+	if (!initialized)
+	{
+		initialized = TRUE;
+	}
 }
 
+GType 
+sc_language_manager_get_type ()
+{
+	static GType sc_language_manager_type_id = 0;
+	
+	if (!sc_language_manager_type_id)
+	{
+		static const GTypeInfo g_define_type_info =
+		{
+			sizeof (ScLanguageManagerIface),
+			(GBaseInitFunc) sc_language_manager_init, 
+			NULL,
+			NULL,
+			NULL,
+			NULL,
+			0,
+			0,
+			NULL
+		};
+		
+		sc_language_manager_type_id = 
+			g_type_register_static (G_TYPE_INTERFACE,
+						"ScLanguageManager",
+						&g_define_type_info,
+						0);
+
+		g_type_interface_add_prerequisite (sc_language_manager_type_id,
+		                                   G_TYPE_OBJECT);
+	}
+	
+	return sc_language_manager_type_id;
+}
+
+const gchar *
+sc_language_manager_get_language (ScLanguageManager *lm)
+{
+	g_return_val_if_fail (SC_IS_LANGUAGE_MANAGER (lm), NULL);	
+	return SC_LANGUAGE_MANAGER_GET_INTERFACE (lm)->get_language (lm);
+}
+
+void
+sc_language_manager_set_active (ScLanguageManager	*lm,
+				gboolean 		 active)
+{
+	g_return_if_fail (SC_IS_LANGUAGE_MANAGER (lm));
+	
+	SC_LANGUAGE_MANAGER_GET_INTERFACE (lm)->set_active (lm, active);
+}
 
