@@ -24,16 +24,17 @@
 
 #include <glib-object.h>
 #include <gdk-pixbuf/gdk-pixbuf.h>
+#include <gedit/gedit-plugin.h>
 
 G_BEGIN_DECLS
 
-#define SC_TYPE_LANGUAGE_MANAGER			(sc_language_manager_get_type ())
-#define SC_LANGUAGE_MANAGER(obj)			(G_TYPE_CHECK_INSTANCE_CAST ((obj), SC_TYPE_LANGUAGE_MANAGER, ScLanguageManager))
-#define SC_IS_LANGUAGE_MANAGER(obj)			(G_TYPE_CHECK_INSTANCE_TYPE ((obj), SC_TYPE_LANGUAGE_MANAGER))
+#define SC_TYPE_LANGUAGE_MANAGER		(sc_language_manager_get_type ())
+#define SC_LANGUAGE_MANAGER(obj)		(G_TYPE_CHECK_INSTANCE_CAST ((obj), SC_TYPE_LANGUAGE_MANAGER, ScLanguageManager))
+#define SC_IS_LANGUAGE_MANAGER(obj)		(G_TYPE_CHECK_INSTANCE_TYPE ((obj), SC_TYPE_LANGUAGE_MANAGER))
 #define SC_LANGUAGE_MANAGER_GET_INTERFACE(obj)	(G_TYPE_INSTANCE_GET_INTERFACE ((obj), SC_TYPE_LANGUAGE_MANAGER, ScLanguageManagerIface))
 
 typedef struct _ScLanguageManager		ScLanguageManager;
-typedef struct _ScLanguageManagerIface	ScLanguageManagerIface;
+typedef struct _ScLanguageManagerIface		ScLanguageManagerIface;
 
 struct _ScLanguageManagerIface
 {
@@ -43,6 +44,8 @@ struct _ScLanguageManagerIface
 	const gchar 	*(*get_language)	(ScLanguageManager	*lm);
 	void		 (*set_active)		(ScLanguageManager	*lm,
 					 	 gboolean		 active);
+	void		 (*activate_document)	(ScLanguageManager	*lm,
+						 GeditDocument		*doc);
 };
 
 GType 			 sc_language_manager_get_type 	(void) G_GNUC_CONST;
@@ -51,6 +54,9 @@ const gchar		*sc_language_manager_get_language	(ScLanguageManager	*lm);
 
 void			 sc_language_manager_set_active		(ScLanguageManager	*lm,
 								 gboolean		 active);
+								 
+void			 sc_language_manager_activate_document	(ScLanguageManager	*lm,
+								 GeditDocument		*doc);
 
 G_END_DECLS
 

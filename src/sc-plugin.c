@@ -34,6 +34,7 @@
 #include "sc-provider-csymbols-goto.h"
 #include "sc-provider-project-csymbols.h"
 #include "sc-symbols-panel.h"
+#include "sc-language-manager.h"
 #include "sc-ctags.h"
 
 #define SC_PLUGIN_GET_PRIVATE(object)	(G_TYPE_INSTANCE_GET_PRIVATE ((object), SC_TYPE_PLUGIN, ScPluginPrivate))
@@ -67,6 +68,7 @@ struct _ScPluginPrivate
 	GtkWidget 	*window;
 	GtkWidget 	*panel;
 	ScMenu		*menu;
+	GHashTable	*lmanagers;
 };
 
 typedef struct _ViewAndCompletion ViewAndCompletion;
@@ -80,6 +82,12 @@ static void
 sc_plugin_init (ScPlugin *plugin)
 {
 	plugin->priv = SC_PLUGIN_GET_PRIVATE (plugin);
+	
+	plugin->priv->lmanagers = g_hash_table_new_full (g_str_hash,
+							 g_str_equal,
+							 NULL,
+							 g_object_unref);
+	
 	gedit_debug_message (DEBUG_PLUGINS,
 			     "ScPlugin initializing");
 }
@@ -87,6 +95,10 @@ sc_plugin_init (ScPlugin *plugin)
 static void
 sc_plugin_finalize (GObject *object)
 {
+	ScPlugin *self = SC_PLUGIN (object);
+	
+	g_hash_table_destroy (self->priv->lmanagers);
+	
 	gedit_debug_message (DEBUG_PLUGINS,
 			     "ScPlugin finalizing");
 	G_OBJECT_CLASS (sc_plugin_parent_class)->finalize (object);
@@ -188,9 +200,26 @@ create_panel (GeditPlugin *plugin,
         
 }
 
+static ScLanguageManager*
+get_language_manager (ScPlugin		*self, 
+		      const gchar	*lang)
+{
+	ScLanguageManager *lm = g_hash_table_lookup (self->priv->lmanagers, lang);
+	if (!lm)
+	{
+		/*TODO try to load the language manager*/
+	}
+	
+	return lm;
+}
+
 static void
 document_enable (ScPlugin *self, GeditDocument *doc)
 {
+	GtkSourceLanguage *language = gtk_source_buffer_get_language (GTK_SOURCE_BUFFER (doc));
+	if (!language)
+		return;
+	
 	GeditTab *tab = gedit_tab_get_from_document (doc);
 	GeditView *view = gedit_tab_get_view (tab);
 	GtkSourceCompletion *comp = gtk_source_view_get_completion (GTK_SOURCE_VIEW (view));

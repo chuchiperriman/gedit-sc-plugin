@@ -34,6 +34,13 @@ sc_language_manager_set_active_default (ScLanguageManager	*lm,
 	return;
 }
 
+static void
+sc_language_manager_activate_document_default (ScLanguageManager	*lm,
+					       GeditDocument		*doc)
+{
+	return;
+}
+
 static void 
 sc_language_manager_init (ScLanguageManagerIface *iface)
 {
@@ -41,6 +48,7 @@ sc_language_manager_init (ScLanguageManagerIface *iface)
 	
 	iface->get_language = sc_language_manager_get_language_default;
 	iface->set_active = sc_language_manager_set_active_default;
+	iface->activate_document = sc_language_manager_activate_document_default;
 	
 	if (!initialized)
 	{
@@ -96,4 +104,14 @@ sc_language_manager_set_active (ScLanguageManager	*lm,
 	
 	SC_LANGUAGE_MANAGER_GET_INTERFACE (lm)->set_active (lm, active);
 }
+
+void
+sc_language_manager_activate_document	(ScLanguageManager	*lm,
+					 GeditDocument		*doc)
+{
+	g_return_if_fail (SC_IS_LANGUAGE_MANAGER (lm));
+	
+	SC_LANGUAGE_MANAGER_GET_INTERFACE (lm)->activate_document (lm, doc);
+}
+
 

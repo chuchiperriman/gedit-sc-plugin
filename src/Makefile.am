@@ -25,6 +25,8 @@ libsourcecompletion_la_SOURCES = 	\
 	sc-ctags.c			\
 	sc-language-manager.h		\
 	sc-language-manager.c		\
+	sc-lm-c.h			\
+	sc-lm-c.c			\
 	sc-provider-csymbols.h		\
 	sc-provider-csymbols.c		\
 	sc-provider-csymbols-goto.h	\
