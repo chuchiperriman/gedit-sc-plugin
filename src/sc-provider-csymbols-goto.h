@@ -23,6 +23,7 @@
 #include <glib-object.h>
 #include <gtksourceview/gtksourcecompletionprovider.h>
 #include <gedit/gedit-plugin.h>
+#include "sc-language-manager.h"
 
 G_BEGIN_DECLS
 
@@ -53,7 +54,8 @@ struct _ScProviderCsymbolsGotoClass
 
 GType		 sc_provider_csymbols_goto_get_type	(void) G_GNUC_CONST;
 
-ScProviderCsymbolsGoto *sc_provider_csymbols_goto_new (GeditDocument *document);
+ScProviderCsymbolsGoto *sc_provider_csymbols_goto_new (GeditDocument *document,
+						       ScLanguageManager *lm);
 
 G_END_DECLS
 

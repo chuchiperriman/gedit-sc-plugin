@@ -38,6 +38,7 @@ struct _ScProviderProjectCsymbolsPrivate
 {
 	GdkPixbuf *provider_icon;
 	GeditDocument *document;
+	ScLanguageManager *lm;
 };
 
 G_DEFINE_TYPE_WITH_CODE (ScProviderProjectCsymbols,
@@ -71,7 +72,7 @@ sc_provider_project_csymbols_populate (GtkSourceCompletionProvider	*base,
 {
 	ScProviderProjectCsymbols *self = SC_PROVIDER_PROJECT_CSYMBOLS (base);
 	GList *symbols = NULL, *res = NULL, *l;
-	gchar *sctags, *project_dir, *word;
+	gchar *word;
 	ScSymbol *s;
 	
 	word = ch_completion_get_word (GTK_SOURCE_BUFFER (self->priv->document));
@@ -80,22 +81,8 @@ sc_provider_project_csymbols_populate (GtkSourceCompletionProvider	*base,
 	{
 		if (g_utf8_strlen (word, -1) > 2)
 		{
-			gchar *uri = gedit_document_get_uri_for_display (self->priv->document);
-			if (g_file_test (uri, G_FILE_TEST_EXISTS))
-			{
-				project_dir = sc_utils_get_project_dir (uri);
-				if (project_dir != NULL)
-				{
-					sctags = sc_ctags_build_project_sctags (project_dir, FALSE);
-					if (sctags != NULL)
-					{
-						symbols = sc_ctags_get_symbols_from_sctags (sctags);
-						g_free (sctags);
-					}
-					g_free (project_dir);
-				}
-			}
-	
+			symbols = sc_language_manager_get_project_symbols (self->priv->lm);
+				
 			if (symbols)
 			{
 				for (l = symbols; l != NULL; l = g_list_next (l))
@@ -105,14 +92,8 @@ sc_provider_project_csymbols_populate (GtkSourceCompletionProvider	*base,
 					{
 						res = g_list_append (res, s);
 					}
-					else
-					{
-						g_object_unref (s);
-					}
 				}
-				g_list_free (symbols);
 			}
-			g_free (uri);
 		}
 		
 		g_free (word);
@@ -127,6 +108,7 @@ sc_provider_project_csymbols_populate (GtkSourceCompletionProvider	*base,
 						     base,
 						     res,
 						     TRUE);
+	/*TODO We must free the proposals list ¿?*/		
 }
 
 static void 
@@ -138,6 +120,8 @@ sc_provider_project_csymbols_finalize (GObject *object)
 	{
 		g_object_unref (provider->priv->provider_icon);
 	}
+	
+	g_object_unref (provider->priv->lm);
 	
 	G_OBJECT_CLASS (sc_provider_project_csymbols_parent_class)->finalize (object);
 }
@@ -170,9 +154,11 @@ sc_provider_project_csymbols_init (ScProviderProjectCsymbols * self)
 }
 
 ScProviderProjectCsymbols *
-sc_provider_project_csymbols_new (GeditDocument *document)
+sc_provider_project_csymbols_new (GeditDocument *document,
+				  ScLanguageManager *lm)
 {
 	ScProviderProjectCsymbols *self = g_object_new (SC_TYPE_PROVIDER_PROJECT_CSYMBOLS, NULL);
 	self->priv->document = document;
+	self->priv->lm = g_object_ref (lm);
 	return self;
 }

@@ -41,6 +41,18 @@ sc_language_manager_activate_document_default (ScLanguageManager	*lm,
 	return;
 }
 
+static GList*
+sc_language_manager_get_document_symbols_default (ScLanguageManager	*lm)
+{
+	return NULL;
+}
+
+static GList*
+sc_language_manager_get_project_symbols_default (ScLanguageManager	*lm)
+{
+	return NULL;
+}
+
 static void 
 sc_language_manager_init (ScLanguageManagerIface *iface)
 {
@@ -49,6 +61,8 @@ sc_language_manager_init (ScLanguageManagerIface *iface)
 	iface->get_language = sc_language_manager_get_language_default;
 	iface->set_active = sc_language_manager_set_active_default;
 	iface->activate_document = sc_language_manager_activate_document_default;
+	iface->get_document_symbols = sc_language_manager_get_document_symbols_default;
+	iface->get_project_symbols = sc_language_manager_get_project_symbols_default;
 	
 	if (!initialized)
 	{
@@ -110,8 +124,26 @@ sc_language_manager_activate_document	(ScLanguageManager	*lm,
 					 GeditDocument		*doc)
 {
 	g_return_if_fail (SC_IS_LANGUAGE_MANAGER (lm));
+	g_return_if_fail (GEDIT_IS_DOCUMENT (doc));
 	
 	SC_LANGUAGE_MANAGER_GET_INTERFACE (lm)->activate_document (lm, doc);
 }
+
+GList*
+sc_language_manager_get_document_symbols (ScLanguageManager	*lm)
+{
+	g_return_val_if_fail (SC_IS_LANGUAGE_MANAGER (lm), NULL);
+	
+	return SC_LANGUAGE_MANAGER_GET_INTERFACE (lm)->get_document_symbols (lm);
+}
+
+GList*
+sc_language_manager_get_project_symbols (ScLanguageManager	*lm)
+{
+	g_return_val_if_fail (SC_IS_LANGUAGE_MANAGER (lm), NULL);
+	
+	return SC_LANGUAGE_MANAGER_GET_INTERFACE (lm)->get_project_symbols (lm);
+}
+
 
 

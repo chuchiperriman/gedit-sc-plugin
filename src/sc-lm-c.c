@@ -20,16 +20,15 @@
  */
 
 #include "sc-lm-c.h"
+#include "sc-ctags.h"
+#include "sc-utils.h"
 
 #define SC_LM_C_GET_PRIVATE(object)(G_TYPE_INSTANCE_GET_PRIVATE((object), SC_TYPE_LM_C, ScLmCPrivate))
 
 struct _ScLmCPrivate
 {
-	gchar *label;
-	gchar *markup;
-	gchar *text;
-	gchar *info;
-	GdkPixbuf *icon;
+	GList *symbols;
+	GList *project_symbols;
 };
 
 static void sc_lm_c_iface_init (gpointer g_iface, gpointer iface_data);
@@ -40,17 +39,91 @@ G_DEFINE_TYPE_WITH_CODE (ScLmC,
 			 G_IMPLEMENT_INTERFACE (SC_TYPE_LANGUAGE_MANAGER,
 			 			sc_lm_c_iface_init))
 
+static void 
+clean_symbols (GList *symbols)
+{
+	if (!symbols)
+		return
+	
+	g_list_foreach (symbols, (GFunc)g_object_unref, NULL);
+	
+	g_list_free (symbols);
+}
+
+static void
+sc_lm_c_enable (ScLanguageManager *self)
+{
+
+}
+
+static void
+sc_lm_c_disable (ScLanguageManager *self)
+{
+	
+}
+
 static const gchar *
 sc_lm_c_get_language_impl (ScLanguageManager *self)
 {
-	return NULL;
+	return "C";
 }
 
 static void
 sc_lm_c_set_active_impl (ScLanguageManager	*self,
 			 gboolean		 active)
 {
+	if (active)
+		sc_lm_c_enable (self);
+	else
+		sc_lm_c_disable (self);
+}
 
+static void
+sc_lm_c_activate_document_impl (ScLanguageManager	*lm,
+				GeditDocument		*doc)
+{
+	ScLmC *self = SC_LM_C (lm);
+	gchar *uri, *project_dir, *sctags;
+	
+	clean_symbols (self->priv->symbols);
+	self->priv->symbols = NULL;
+	clean_symbols (self->priv->project_symbols);
+	self->priv->project_symbols = NULL;
+	
+	
+	uri = gedit_document_get_uri_for_display (doc);
+	if (g_file_test (uri, G_FILE_TEST_EXISTS))
+	{
+		/*Loading document symbols*/
+		self->priv->symbols = sc_ctags_exec_get_symbols (CTAGS_EXEC_FILE, uri);
+
+		/*Loading project symbols*/		
+		project_dir = sc_utils_get_project_dir (uri);
+		if (project_dir != NULL)
+		{
+			sctags = sc_ctags_build_project_sctags (project_dir, FALSE);
+			if (sctags != NULL)
+			{
+				self->priv->project_symbols = sc_ctags_get_symbols_from_sctags (sctags);
+				g_free (sctags);
+			}
+			g_free (project_dir);
+		}
+	}
+}
+
+static GList*
+sc_lm_c_get_document_symbols_impl (ScLanguageManager	*lm)
+{
+	ScLmC *self = SC_LM_C (lm);
+	return self->priv->symbols;
+}
+
+static GList*
+sc_lm_c_get_project_symbols_impl (ScLanguageManager	*lm)
+{
+	ScLmC *self = SC_LM_C (lm);
+	return self->priv->project_symbols;
 }
 
 static void
@@ -62,6 +135,9 @@ sc_lm_c_iface_init (gpointer g_iface,
 	/* Interface data getter implementations */
 	iface->get_language = sc_lm_c_get_language_impl;
 	iface->set_active = sc_lm_c_set_active_impl;
+	iface->activate_document = sc_lm_c_activate_document_impl;
+	iface->get_document_symbols = sc_lm_c_get_document_symbols_impl;
+	iface->get_project_symbols = sc_lm_c_get_project_symbols_impl;
 }
 
 static void
@@ -69,16 +145,8 @@ sc_lm_c_finalize (GObject *object)
 {
 	ScLmC *self = SC_LM_C(object);
 	
-	g_free (self->priv->label);
-	g_free (self->priv->markup);
-	g_free (self->priv->text);
-
-	g_free (self->priv->info);
-	
-	if (self->priv->icon != NULL)
-	{
-		g_object_unref (self->priv->icon);
-	}
+	clean_symbols (self->priv->symbols);
+	clean_symbols (self->priv->project_symbols);
 
 	G_OBJECT_CLASS (sc_lm_c_parent_class)->finalize (object);
 }
@@ -97,6 +165,8 @@ static void
 sc_lm_c_init (ScLmC *self)
 {
 	self->priv = SC_LM_C_GET_PRIVATE (self);
+	self->priv->symbols = NULL;
+	self->priv->project_symbols = NULL;
 }
 
 ScLmC *

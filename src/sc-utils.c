@@ -177,10 +177,6 @@ sc_utils_symbol_to_proposal (ScSymbol *s)
 	return prop;
 }
 
-/**
-   Free all the symbols and the symbols list.
-   Return a list of GtkSourceCompletionItem
- */
 GList*
 sc_utils_symbols_to_proposals (GList *symbols)
 {
@@ -196,9 +192,7 @@ sc_utils_symbols_to_proposals (GList *symbols)
 		s = SC_SYMBOL (l->data);
 		prop = sc_utils_symbol_to_proposal (s);
 		list = g_list_append (list, prop);
-		g_object_unref (s);
 	}
-	g_list_free (symbols);
 	return list;
 }
 
@@ -219,7 +213,7 @@ sc_utils_symbols_to_proposals_without_dup (GList *symbols)
 	if (symbols == NULL)
 		return NULL;
 
-	table = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, g_object_unref);
+	table = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, NULL);
 	
 	for (l = symbols; l != NULL; l = g_list_next (l))
 	{
@@ -232,12 +226,7 @@ sc_utils_symbols_to_proposals_without_dup (GList *symbols)
 			g_hash_table_insert (table, s->name, s);
 			/*This symbol will be freed with the table*/
 		}
-		else
-		{
-			g_object_unref (s);
-		}
 	}
-	g_hash_table_unref (table);
-	g_list_free (symbols);
+	g_hash_table_destroy (table);
 	return list;
 }

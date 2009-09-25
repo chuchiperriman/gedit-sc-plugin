@@ -39,6 +39,7 @@ struct _ScProviderCsymbolsGotoPrivate
 {
 	GdkPixbuf *provider_icon;
 	GeditDocument *document;
+	ScLanguageManager *lm;
 };
 
 G_DEFINE_TYPE_WITH_CODE (ScProviderCsymbolsGoto,
@@ -71,12 +72,7 @@ sc_provider_csymbols_goto_populate (GtkSourceCompletionProvider	*base,
 	gchar *info;
 	gchar *word;
 	
-	gchar *uri = gedit_document_get_uri_for_display (self->priv->document);
-	if (g_file_test (uri, G_FILE_TEST_EXISTS))
-	{
-		/*TODO We cannot recalculate the symbols all the time, we must have a cache*/
-		symbols = sc_ctags_exec_get_symbols (CTAGS_EXEC_FILE, uri);
-	}
+	symbols = sc_language_manager_get_document_symbols (self->priv->lm);
 	
 	if (!symbols)
 	{
@@ -116,11 +112,9 @@ sc_provider_csymbols_goto_populate (GtkSourceCompletionProvider	*base,
 			g_free (info);
 			g_object_unref (icon);
 		}
-		g_object_unref (s);
 	}
 
 	g_free (word);
-	g_list_free (symbols);
 	
 	gtk_source_completion_context_add_proposals (context,
 						     base,
@@ -166,6 +160,8 @@ sc_provider_csymbols_goto_finalize (GObject *object)
 		g_object_unref (provider->priv->provider_icon);
 	}
 	
+	g_object_unref (provider->priv->lm);
+	
 	G_OBJECT_CLASS (sc_provider_csymbols_goto_parent_class)->finalize (object);
 }
 
@@ -199,9 +195,11 @@ sc_provider_csymbols_goto_init (ScProviderCsymbolsGoto * self)
 }
 
 ScProviderCsymbolsGoto *
-sc_provider_csymbols_goto_new (GeditDocument *document)
+sc_provider_csymbols_goto_new (GeditDocument *document,
+			       ScLanguageManager *lm)
 {
 	ScProviderCsymbolsGoto *self = g_object_new (SC_TYPE_PROVIDER_CSYMBOLS_GOTO, NULL);
 	self->priv->document = document;
+	self->priv->lm = g_object_ref (lm);
 	return self;
 }

@@ -330,9 +330,7 @@ sc_symbols_panel_populate (GtkWidget *widget, GList *symbols)
 	{
 		s = SC_SYMBOL (l->data);
 		add_symbol (self, s);
-		g_object_unref (s);
 	}
-	g_list_free (symbols);
 	
 	gtk_tree_view_expand_all (GTK_TREE_VIEW (self->priv->tree_view));
 }

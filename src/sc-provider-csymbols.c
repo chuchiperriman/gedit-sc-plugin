@@ -38,6 +38,7 @@ struct _ScProviderCsymbolsPrivate
 {
 	GdkPixbuf *provider_icon;
 	GeditDocument *document;
+	ScLanguageManager *lm;
 };
 
 G_DEFINE_TYPE_WITH_CODE (ScProviderCsymbols,
@@ -75,11 +76,8 @@ sc_provider_csymbols_populate (GtkSourceCompletionProvider	*base,
 	{
 		if (g_utf8_strlen (word, -1) > 2)
 		{
-			gchar *uri = gedit_document_get_uri_for_display (self->priv->document);
-			if (g_file_test (uri, G_FILE_TEST_EXISTS))
-			{
-				symbols = sc_ctags_exec_get_symbols (CTAGS_EXEC_FILE, uri);
-			}
+
+			symbols = sc_language_manager_get_document_symbols (self->priv->lm);
 	
 			for (l = symbols; l != NULL; l = g_list_next (l))
 			{
@@ -88,17 +86,11 @@ sc_provider_csymbols_populate (GtkSourceCompletionProvider	*base,
 				{
 					res = g_list_append (res, s);
 				}
-				else
-				{
-					g_object_unref (s);
-				}
 			}
 		}
 		g_free (word);
 	}
 
-	g_list_free (symbols);
-	
 	if (res)
 	{
 		res = sc_utils_symbols_to_proposals (res);
@@ -108,6 +100,8 @@ sc_provider_csymbols_populate (GtkSourceCompletionProvider	*base,
 						     base,
 						     res,
 						     TRUE);
+
+	/*TODO Wemus unref the proposals ¿?*/
 	g_list_free (res);
 }
 
@@ -127,6 +121,8 @@ sc_provider_csymbols_finalize (GObject *object)
 	{
 		g_object_unref (provider->priv->provider_icon);
 	}
+	
+	g_object_unref (provider->priv->lm);
 	
 	G_OBJECT_CLASS (sc_provider_csymbols_parent_class)->finalize (object);
 }
@@ -160,9 +156,10 @@ sc_provider_csymbols_init (ScProviderCsymbols * self)
 }
 
 ScProviderCsymbols *
-sc_provider_csymbols_new (GeditDocument *document)
+sc_provider_csymbols_new (GeditDocument *document, ScLanguageManager *lm)
 {
 	ScProviderCsymbols *self = g_object_new (SC_TYPE_PROVIDER_CSYMBOLS, NULL);
 	self->priv->document = document;
+	self->priv->lm = g_object_ref (lm);
 	return self;
 }

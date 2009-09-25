@@ -35,6 +35,7 @@
 #include "sc-provider-project-csymbols.h"
 #include "sc-symbols-panel.h"
 #include "sc-language-manager.h"
+#include "sc-lm-c.h"
 #include "sc-ctags.h"
 
 #define SC_PLUGIN_GET_PRIVATE(object)	(G_TYPE_INSTANCE_GET_PRIVATE ((object), SC_TYPE_PLUGIN, ScPluginPrivate))
@@ -69,6 +70,7 @@ struct _ScPluginPrivate
 	GtkWidget 	*panel;
 	ScMenu		*menu;
 	GHashTable	*lmanagers;
+	ScLanguageManager *current_lm;
 };
 
 typedef struct _ViewAndCompletion ViewAndCompletion;
@@ -85,8 +87,9 @@ sc_plugin_init (ScPlugin *plugin)
 	
 	plugin->priv->lmanagers = g_hash_table_new_full (g_str_hash,
 							 g_str_equal,
-							 NULL,
+							 g_free,
 							 g_object_unref);
+	plugin->priv->current_lm = NULL;
 	
 	gedit_debug_message (DEBUG_PLUGINS,
 			     "ScPlugin initializing");
@@ -96,8 +99,15 @@ static void
 sc_plugin_finalize (GObject *object)
 {
 	ScPlugin *self = SC_PLUGIN (object);
+
+	if (self->priv->current_lm)
+	{
+		sc_language_manager_set_active (self->priv->current_lm, FALSE);
+		self->priv->current_lm = NULL;
+	}
 	
 	g_hash_table_destroy (self->priv->lmanagers);
+
 	
 	gedit_debug_message (DEBUG_PLUGINS,
 			     "ScPlugin finalizing");
@@ -107,16 +117,13 @@ sc_plugin_finalize (GObject *object)
 static void
 populate_panel (ScPlugin *self, GeditDocument *doc)
 {
-	GList *symbols;
-	gchar *uri;
-	
-	uri = gedit_document_get_uri_for_display (doc);
-	if (g_file_test (uri, G_FILE_TEST_EXISTS))
+	GList *symbols = NULL;
+	if (self->priv->current_lm)
 	{
-		symbols = sc_ctags_exec_get_symbols (CTAGS_EXEC_FILE, uri);
-		sc_symbols_panel_populate (self->priv->panel, symbols);
+		symbols = sc_language_manager_get_document_symbols (self->priv->current_lm);
 	}
-	g_free (uri);
+
+	sc_symbols_panel_populate (self->priv->panel, symbols);
 }
 
 static gboolean
@@ -124,6 +131,7 @@ view_key_press_event_cb (GtkWidget *view,
                          GdkEventKey *event,
                          gpointer user_data)
 {
+	
 	GeditDocument *doc;
 	doc = GEDIT_DOCUMENT (gtk_text_view_get_buffer (GTK_TEXT_VIEW (view)));
 	GtkSourceCompletion *comp = gtk_source_view_get_completion (GTK_SOURCE_VIEW (view));
@@ -152,14 +160,8 @@ tab_changed_cb (GeditWindow *geditwindow,
 {
 	GeditDocument *doc = gedit_tab_get_document (tab);
 
+	document_enable (self, doc);
 	populate_panel (self, doc);
-	
-	/*Providers*/
-	GtkSourceCompletionProvider *prov = document_get_provider_symbols(doc);
-	if (prov == NULL)
-	{
-		document_enable (self, doc);
-	}
 }
 
 static void
@@ -167,6 +169,7 @@ tab_state_changed_cb (GeditWindow *window,
 		      ScPlugin *self)
 {
 	GeditDocument *doc = gedit_window_get_active_document (window);
+	document_enable (self, doc);
 	populate_panel (self, doc);
 }
 
@@ -207,7 +210,27 @@ get_language_manager (ScPlugin		*self,
 	ScLanguageManager *lm = g_hash_table_lookup (self->priv->lmanagers, lang);
 	if (!lm)
 	{
-		/*TODO try to load the language manager*/
+		/*TODO testing, we need to load the lm correctly*/
+		/*
+		gchar **mimes = gtk_source_language_get_mime_types (language);
+
+		for (i = 0; mimes[i] != NULL; i++)
+		{
+			g_debug ("mime: %s", mimes[i]);
+		}
+		*/
+		
+		if (strcmp (lang, "C") == 0)
+		{
+			lm = SC_LANGUAGE_MANAGER (sc_lm_c_new ());
+			g_hash_table_insert (self->priv->lmanagers,
+					     g_strdup (lang),
+					     lm);
+		}
+		else
+		{
+			g_debug ("no lm: %s", lang);
+		}
 	}
 	
 	return lm;
@@ -216,29 +239,68 @@ get_language_manager (ScPlugin		*self,
 static void
 document_enable (ScPlugin *self, GeditDocument *doc)
 {
-	GtkSourceLanguage *language = gtk_source_buffer_get_language (GTK_SOURCE_BUFFER (doc));
-	if (!language)
-		return;
-	
-	GeditTab *tab = gedit_tab_get_from_document (doc);
-	GeditView *view = gedit_tab_get_view (tab);
-	GtkSourceCompletion *comp = gtk_source_view_get_completion (GTK_SOURCE_VIEW (view));
+	ScLanguageManager *lm;
+	GtkSourceLanguage *language;
+	GeditTab *tab;
+	GeditView *view;
+	GtkSourceCompletion *comp;
 	GtkSourceCompletionProvider *prov;
+	
+	language = gtk_source_buffer_get_language (GTK_SOURCE_BUFFER (doc));
+	if (!language)
+	{
+		if (self->priv->current_lm)
+		{
+			sc_language_manager_set_active (self->priv->current_lm, FALSE);
+			self->priv->current_lm = NULL;
+		} 
+		return;
+	}
+	
+	lm = get_language_manager (self, gtk_source_language_get_name (language));
+	
+	if (!lm)
+	{
+		if (self->priv->current_lm)
+		{
+			sc_language_manager_set_active (self->priv->current_lm, FALSE);
+			self->priv->current_lm = NULL;
+		} 
+		return;
+	}
+	
+	if (self->priv->current_lm != NULL && self->priv->current_lm != lm)
+	{
+		sc_language_manager_set_active (self->priv->current_lm, FALSE);
+	}
+	
+	self->priv->current_lm = lm;
+	
+	sc_language_manager_activate_document (lm, doc);
+	
+	if (document_get_provider_symbols(doc))
+	{
+		//This document has the providers
+		return;
+	}
+	
+	tab = gedit_tab_get_from_document (doc);
+	view = gedit_tab_get_view (tab);
+	comp = gtk_source_view_get_completion (GTK_SOURCE_VIEW (view));
 
-	prov = GTK_SOURCE_COMPLETION_PROVIDER(sc_provider_csymbols_new (doc));
+	prov = GTK_SOURCE_COMPLETION_PROVIDER(sc_provider_csymbols_new (doc, lm));
 	gtk_source_completion_add_provider (comp, prov, NULL);
 	g_object_set_data (G_OBJECT (doc), SC_PROVIDER_SYMBOLS_KEY, prov);
 	g_object_unref (prov);
-	
-	
-	prov = GTK_SOURCE_COMPLETION_PROVIDER(sc_provider_csymbols_goto_new (doc));
-	gtk_source_completion_add_provider (comp, prov, NULL);
-	g_object_set_data (G_OBJECT (doc), SC_PROVIDER_SYMBOLS_GOTO_KEY, prov);
-	g_object_unref (prov);
 
-	prov = GTK_SOURCE_COMPLETION_PROVIDER(sc_provider_project_csymbols_new (doc));
+	prov = GTK_SOURCE_COMPLETION_PROVIDER(sc_provider_project_csymbols_new (doc, lm));
 	gtk_source_completion_add_provider (comp, prov, NULL);
 	g_object_set_data (G_OBJECT (doc), SC_PROVIDER_PROJECT_SYMBOLS_KEY, prov);
+	g_object_unref (prov);	
+
+	prov = GTK_SOURCE_COMPLETION_PROVIDER(sc_provider_csymbols_goto_new (doc, lm));
+	gtk_source_completion_add_provider (comp, prov, NULL);
+	g_object_set_data (G_OBJECT (doc), SC_PROVIDER_SYMBOLS_GOTO_KEY, prov);
 	g_object_unref (prov);
 
 	g_signal_connect (view, "key-press-event",
