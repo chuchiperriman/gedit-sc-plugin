@@ -133,21 +133,33 @@ view_key_press_event_cb (GtkWidget *view,
 {
 	
 	GeditDocument *doc;
+	GtkSourceCompletionContext *context;
+	GtkSourceCompletion *comp;
+	guint s;
+	GtkTextMark *insert_mark;
+	GtkTextBuffer *buffer;
+	GtkTextIter iter;
+	
 	doc = GEDIT_DOCUMENT (gtk_text_view_get_buffer (GTK_TEXT_VIEW (view)));
-	GtkSourceCompletion *comp = gtk_source_view_get_completion (GTK_SOURCE_VIEW (view));
-	guint s = event->state & gtk_accelerator_get_default_mod_mask();
+	comp = gtk_source_view_get_completion (GTK_SOURCE_VIEW (view));
+	s = event->state & gtk_accelerator_get_default_mod_mask();
 	
         if (s == GDK_CONTROL_MASK && event->keyval == GDK_m)
         {
-		/*	
+        	buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (view));
+        	
+        	insert_mark = gtk_text_buffer_get_insert (buffer);
+        	gtk_text_buffer_get_iter_at_mark (buffer, &iter, insert_mark);
+        	
+        	context = gtk_source_completion_create_context (comp, &iter);
+
         	GList *providers = g_list_append (NULL, document_get_provider_symbols_goto(doc));
+        	
 		gtk_source_completion_show (comp,
 					    providers,
-					    NULL,
-					    NULL);
+					    context);
 		g_list_free (providers);
                 return TRUE;
-                */
         }
 
         return FALSE;

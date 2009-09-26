@@ -79,7 +79,7 @@ sc_provider_project_csymbols_populate (GtkSourceCompletionProvider	*base,
 	
 	if (word)
 	{
-		if (g_utf8_strlen (word, -1) > 2)
+		if (gtk_source_completion_context_get_default (context) || g_utf8_strlen (word, -1) > 2)
 		{
 			symbols = sc_language_manager_get_project_symbols (self->priv->lm);
 				
