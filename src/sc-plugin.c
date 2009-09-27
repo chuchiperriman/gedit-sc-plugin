@@ -28,7 +28,6 @@
 #include <gedit/gedit-debug.h>
 
 #include "sc-plugin.h"
-#include "sc-menu.h"
 #include "sc-utils.h"
 #include "sc-provider-csymbols.h"
 #include "sc-provider-csymbols-goto.h"
@@ -39,9 +38,11 @@
 #include "sc-ctags.h"
 
 #define SC_PLUGIN_GET_PRIVATE(object)	(G_TYPE_INSTANCE_GET_PRIVATE ((object), SC_TYPE_PLUGIN, ScPluginPrivate))
+#define WINDOW_DATA_KEY "SourceCodeWindowData"
 #define document_get_provider_symbols(doc) (GTK_SOURCE_COMPLETION_PROVIDER (g_object_get_data (G_OBJECT (doc), SC_PROVIDER_SYMBOLS_KEY)))
 #define document_get_provider_symbols_goto(doc) (GTK_SOURCE_COMPLETION_PROVIDER (g_object_get_data (G_OBJECT (doc), SC_PROVIDER_SYMBOLS_GOTO_KEY)))
 #define document_get_provider_project_symbols(doc) (GTK_SOURCE_COMPLETION_PROVIDER (g_object_get_data (G_OBJECT (doc), SC_PROVIDER_PROJECT_SYMBOLS_KEY)))
+#define get_window_data(window) ((WindowData *) (g_object_get_data (G_OBJECT (window), WINDOW_DATA_KEY)))
 
 #define SC_STOCK_ICONS "sc-stock-icons"
 #define SC_PROVIDER_SYMBOLS_KEY "sc-provider-symbols"
@@ -68,17 +69,97 @@ struct _ScPluginPrivate
 	GeditWindow	*gedit_window;
 	GtkWidget 	*window;
 	GtkWidget 	*panel;
-	ScMenu		*menu;
 	GHashTable	*lmanagers;
 	ScLanguageManager *current_lm;
 };
 
-typedef struct _ViewAndCompletion ViewAndCompletion;
+typedef struct
+{
+	ScPlugin	*plugin;
+	GeditWindow	*window;
+        GtkActionGroup	*action_group;
+        guint		 merge_id;
+} WindowData;
 
 GEDIT_PLUGIN_REGISTER_TYPE (ScPlugin, sc_plugin)
 
 static void document_enable (ScPlugin *self, GeditDocument *doc);
 static void document_disable (ScPlugin *self, GeditDocument *doc);
+static void preferences_cb (GtkAction * action, GeditWindow * window);
+
+static const gchar *ui_str =
+        "<ui>"
+        "  <menubar name='MenuBar'>"
+	"    <placeholder name='ExtraMenu_1'>"
+	"      <menu name='SourceCodeMenu' action='SourceCodeAction'>"
+	"        <placeholder name='ScMainPlaceholder'/>"
+	"        <menuitem name='Preferences' action='PreferencesAction'/>"
+	"      </menu>"
+	"    </placeholder>"
+        "  </menubar>"
+        "</ui>";
+
+static const GtkActionEntry action_entries[] =
+{
+	{"SourceCodeAction", NULL, N_("Source Code")},
+	{ "PreferencesAction",
+	  NULL,
+	  N_("Preferences"),
+	  NULL,
+	  N_("Source code plugin preferences"),
+	  G_CALLBACK (preferences_cb) }
+};
+
+static void
+preferences_cb (GtkAction * action,
+		GeditWindow * window)
+{
+	g_debug ("Preferences action");
+}
+
+void
+menu_enable (ScPlugin *self, WindowData *wdata)
+{
+	GtkUIManager *manager;
+
+        manager = gedit_window_get_ui_manager (wdata->window);
+
+        wdata->action_group = gtk_action_group_new ("SourceCodeActions");
+        gtk_action_group_set_translation_domain (wdata->action_group,
+                                                 GETTEXT_PACKAGE);
+
+	gtk_ui_manager_insert_action_group (manager, 
+					    wdata->action_group,
+					    -1);
+
+        gtk_action_group_add_actions (wdata->action_group,
+                                      action_entries,
+                                      G_N_ELEMENTS (action_entries),
+
+                                      wdata->window);
+	wdata->merge_id = gtk_ui_manager_add_ui_from_string (manager, ui_str,
+							    -1, NULL);                                      
+}
+
+void
+menu_disable (ScPlugin *self, WindowData *wdata)
+{
+	GtkUIManager *manager;
+
+        manager = gedit_window_get_ui_manager (wdata->window);
+
+        gtk_ui_manager_remove_ui (manager, wdata->merge_id);
+        gtk_ui_manager_remove_action_group (manager, wdata->action_group);
+}
+
+static void
+window_data_free (WindowData *data)
+{
+        g_return_if_fail (data != NULL);
+
+        g_object_unref (data->action_group);
+        g_free (data);
+}
 
 static void
 sc_plugin_init (ScPlugin *plugin)
@@ -344,6 +425,8 @@ impl_activate (GeditPlugin *plugin,
 {
 	GList *docs, *l;
 	GeditDocument *doc;
+	WindowData *wdata;
+	
 	ScPlugin * self = SC_PLUGIN(plugin);
 
 	gedit_debug (DEBUG_PLUGINS);
@@ -360,9 +443,16 @@ impl_activate (GeditPlugin *plugin,
 			  G_CALLBACK (tab_state_changed_cb),
 			  self);
 
-	/* Adding the menu */
-	self->priv->menu = sc_menu_new (window);
-	sc_menu_enable (self->priv->menu);
+        wdata = g_slice_new (WindowData);
+	wdata->plugin = self;
+	wdata->window = window;
+	
+	g_object_set_data_full (G_OBJECT (window),
+                                WINDOW_DATA_KEY,
+                                wdata,
+                                (GDestroyNotify) window_data_free);
+	
+	menu_enable (self, wdata);
 		
 	docs = gedit_window_get_documents (window);
 	for (l = docs; l != NULL; l = g_list_next (l))
@@ -393,8 +483,7 @@ impl_deactivate (GeditPlugin *plugin,
 	side_panel = gedit_window_get_side_panel (window);
 	gedit_panel_remove_item (side_panel, self->priv->panel);
 
-	sc_menu_disable (self->priv->menu);
-	self->priv->menu = NULL;
+	menu_disable (self, get_window_data (window));
 
 	docs = gedit_window_get_documents (window);
 	for (l = docs; l != NULL; l = g_list_next (l))
@@ -402,6 +491,8 @@ impl_deactivate (GeditPlugin *plugin,
 		doc = GEDIT_DOCUMENT (l->data);
 		document_disable (self, doc);
 	}
+	
+	g_object_set_data (G_OBJECT (window), WINDOW_DATA_KEY, NULL);
 }
 
 static void
