@@ -155,10 +155,10 @@ menu_disable (ScPlugin *self, WindowData *wdata)
 static void
 window_data_free (WindowData *data)
 {
-        g_return_if_fail (data != NULL);
+	g_return_if_fail (data != NULL);
 
         g_object_unref (data->action_group);
-        g_free (data);
+        g_slice_free (WindowData, data);
 }
 
 static void
@@ -480,6 +480,7 @@ impl_deactivate (GeditPlugin *plugin,
 	g_signal_handlers_disconnect_by_func (window,
 					      G_CALLBACK (tab_state_changed_cb),
 					      self);
+	
 	side_panel = gedit_window_get_side_panel (window);
 	gedit_panel_remove_item (side_panel, self->priv->panel);
 
@@ -491,7 +492,6 @@ impl_deactivate (GeditPlugin *plugin,
 		doc = GEDIT_DOCUMENT (l->data);
 		document_disable (self, doc);
 	}
-	
 	g_object_set_data (G_OBJECT (window), WINDOW_DATA_KEY, NULL);
 }
 

@@ -88,7 +88,7 @@ sc_provider_project_csymbols_populate (GtkSourceCompletionProvider	*base,
 				for (l = symbols; l != NULL; l = g_list_next (l))
 				{
 					s = (ScSymbol*)l->data;
-					if (g_str_has_prefix (s->name, word))
+					if (g_str_has_prefix (s->name, word) && g_utf8_collate (s->name, word) != 0)
 					{
 						res = g_list_append (res, s);
 					}
