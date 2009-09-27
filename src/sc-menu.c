@@ -147,20 +147,21 @@ sc_menu_enable (ScMenu *self)
         data->action_group = gtk_action_group_new ("SourceCodeActions");
         gtk_action_group_set_translation_domain (data->action_group,
                                                  GETTEXT_PACKAGE);
-        gtk_action_group_add_actions (data->action_group,
-                                      action_entries,
-                                      G_N_ELEMENTS (action_entries),
-                                      self->priv->window);
 
-        gtk_ui_manager_insert_action_group (manager, data->action_group, -1);
-
-        data->ui_id = gtk_ui_manager_add_ui_from_string (manager, ui_str,
-                                                         -1, NULL);
-
-        g_object_set_data_full (G_OBJECT (self->priv->window),
+	g_object_set_data_full (G_OBJECT (self->priv->window),
                                 WINDOW_DATA_KEY,
                                 data,
                                 (GDestroyNotify) window_data_free);
+
+	gtk_ui_manager_insert_action_group (manager, 
+					    data->action_group,
+					    -1);
+					                                                     
+        data->ui_id = sc_menu_insert_main_actions (self, action_entries, G_N_ELEMENTS (action_entries));
+
+        data->ui_id = gtk_ui_manager_add_ui_from_string (manager, ui_str,
+                                                         -1, NULL);
+        
 }
 
 void
@@ -180,30 +181,62 @@ sc_menu_disable (ScMenu *self)
         g_object_set_data (G_OBJECT (self->priv->window), WINDOW_DATA_KEY, NULL);
 }
 
-void
+guint
 sc_menu_insert_main_actions (ScMenu *self, const GtkActionEntry *entries, gint n_entries)
 {
 	GtkUIManager *manager;
         WindowData *data;
 	gint i;
+	guint merge_id;
 
-	g_return_if_fail (entries != NULL);
+	g_return_val_if_fail (SC_IS_MENU (self), 0);
+	g_return_val_if_fail (entries != NULL, 0);
 	
         manager = gedit_window_get_ui_manager (self->priv->window);
 	data = get_plugin_data (self->priv->window);
-	g_return_if_fail (data != NULL);
+	g_return_val_if_fail (data != NULL, 0);
 
+	merge_id = gtk_ui_manager_new_merge_id (manager);
+	
         gtk_action_group_add_actions (data->action_group,
                                       entries,
                                       n_entries,
                                       self->priv->window);
 	for (i=0;i < n_entries;i++)
 	{
-		gtk_ui_manager_add_ui (manager, data->ui_id,
+		gtk_ui_manager_add_ui (manager, merge_id,
 				       "/MenuBar/ExtraMenu_1/SourceCodeMenu/ScMainPlaceholder",
 				       entries[i].name,
 				       entries[i].name,
 				       GTK_UI_MANAGER_MENUITEM,
 				       FALSE);
+	}
+	return merge_id;
+}
+
+void
+sc_menu_remove_main_actions (ScMenu *self, const GtkActionEntry *entries, gint n_entries, guint merge_id)
+{
+	GtkUIManager *manager;
+        WindowData *data;
+        GtkAction *action;
+	gint i;
+
+	g_return_if_fail (SC_IS_MENU (self));
+	g_return_if_fail (entries != NULL);
+	
+        manager = gedit_window_get_ui_manager (self->priv->window);
+	data = get_plugin_data (self->priv->window);
+	
+	g_return_if_fail (data != NULL);
+	
+	gtk_ui_manager_remove_ui (manager, merge_id);
+	
+	for (i=0;i < n_entries;i++)
+	{
+		action = gtk_action_group_get_action (data->action_group,
+						      entries[i].name);
+		gtk_action_group_remove_action (data->action_group,
+						action);
 	}
 }

@@ -19,14 +19,32 @@
  * Boston, MA  02110-1301  USA
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
+
+#include <glib/gi18n-lib.h>
+
 #include "sc-lm-c.h"
 #include "sc-ctags.h"
 #include "sc-utils.h"
 
 #define SC_LM_C_GET_PRIVATE(object)(G_TYPE_INSTANCE_GET_PRIVATE((object), SC_TYPE_LM_C, ScLmCPrivate))
 
-
 #define LANGUAGES "text/x-c;text/x-csrc;text/x-c++hdr;text/x-chdr"
+
+static void	 generate_tags_cb	(GtkAction * action, GeditWindow * window);
+
+static const GtkActionEntry action_entries[] =
+{
+	{"SourceCodeAction", NULL, N_("Source Code")},
+	{ "GenerateTagsAction",
+	  NULL,
+	  N_("Generate Project Tags"),
+	  NULL,
+	  N_("Generate the tags symbols file for the project of the current document"),
+	  G_CALLBACK (generate_tags_cb) }
+};
 
 struct _ScLmCPrivate
 {
@@ -42,6 +60,13 @@ G_DEFINE_TYPE_WITH_CODE (ScLmC,
 			 G_TYPE_OBJECT,
 			 G_IMPLEMENT_INTERFACE (SC_TYPE_LANGUAGE_MANAGER,
 			 			sc_lm_c_iface_init))
+
+static void
+generate_tags_cb (GtkAction * action,
+		  GeditWindow * window)
+{
+	g_debug ("Generate tags action");
+}
 
 static GSList*
 build_language_ids ()

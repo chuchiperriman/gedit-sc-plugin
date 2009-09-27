@@ -70,7 +70,13 @@ GType sc_menu_get_type (void) G_GNUC_CONST;
 ScMenu		*sc_menu_new			(GeditWindow *window);
 void		 sc_menu_enable			(ScMenu *self);
 void		 sc_menu_disable		(ScMenu *self);
-void		 sc_menu_insert_main_actions	(ScMenu *self, const GtkActionEntry *action_entries, gint n_entries);
+guint		 sc_menu_insert_main_actions	(ScMenu *self, 
+						 const GtkActionEntry *action_entries,
+						 gint n_entries);
+void		 sc_menu_remove_main_actions	(ScMenu *self, 
+						 const GtkActionEntry *action_entries,
+						 gint n_entries,
+						 guint merge_id);
 
 G_END_DECLS
 
