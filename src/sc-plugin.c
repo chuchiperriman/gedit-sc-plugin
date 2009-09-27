@@ -219,29 +219,22 @@ static ScLanguageManager*
 get_language_manager (ScPlugin		*self, 
 		      const gchar	*lang)
 {
+	GSList *languages;
 	ScLanguageManager *lm = g_hash_table_lookup (self->priv->lmanagers, lang);
 	if (!lm)
 	{
 		/*TODO testing, we need to load the lm correctly*/
-		/*
-		gchar **mimes = gtk_source_language_get_mime_types (language);
-
-		for (i = 0; mimes[i] != NULL; i++)
+		lm = SC_LANGUAGE_MANAGER (sc_lm_c_new ());
+		languages = sc_language_manager_get_language_ids (lm);
+		while (languages)
 		{
-			g_debug ("mime: %s", mimes[i]);
-		}
-		*/
-		
-		if (strcmp (lang, "C") == 0)
-		{
-			lm = SC_LANGUAGE_MANAGER (sc_lm_c_new ());
-			g_hash_table_insert (self->priv->lmanagers,
-					     g_strdup (lang),
-					     lm);
-		}
-		else
-		{
-			g_debug ("no lm: %s", lang);
+			languages = g_slist_next (languages);
+			if (strcmp (lang, (const gchar*)languages->data) == 0)
+			{
+				g_hash_table_insert (self->priv->lmanagers,
+						     g_strdup (lang),
+						     lm);
+			}
 		}
 	}
 	
@@ -269,7 +262,11 @@ document_enable (ScPlugin *self, GeditDocument *doc)
 		return;
 	}
 	
-	lm = get_language_manager (self, gtk_source_language_get_name (language));
+	/********Test to get the mime types********/
+	g_debug ("id: %s", gtk_source_language_get_id (language));
+	/***********************/
+	
+	lm = get_language_manager (self, gtk_source_language_get_id (language));
 	
 	if (!lm)
 	{

@@ -41,7 +41,7 @@ struct _ScLanguageManagerIface
 	GTypeInterface parent;
 	
 	/* Interface functions */
-	const gchar 	*(*get_language)		(ScLanguageManager	*lm);
+	GSList	 	*(*get_language_ids)		(ScLanguageManager	*lm);
 	void		 (*set_active)			(ScLanguageManager	*lm,
 						 	 gboolean		 active);
 	void		 (*activate_document)		(ScLanguageManager	*lm,
@@ -52,7 +52,7 @@ struct _ScLanguageManagerIface
 
 GType 			 sc_language_manager_get_type 	(void) G_GNUC_CONST;
 
-const gchar		*sc_language_manager_get_language	(ScLanguageManager	*lm);
+GSList			*sc_language_manager_get_language_ids	(ScLanguageManager	*lm);
 
 void			 sc_language_manager_set_active		(ScLanguageManager	*lm,
 								 gboolean		 active);

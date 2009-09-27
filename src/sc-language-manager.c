@@ -21,8 +21,8 @@
 
 #include "sc-language-manager.h"
 
-static const gchar *
-sc_language_manager_get_language_default (ScLanguageManager *lm)
+static GSList*
+sc_language_manager_get_language_ids_default (ScLanguageManager *lm)
 {
 	return NULL;
 }
@@ -58,7 +58,7 @@ sc_language_manager_init (ScLanguageManagerIface *iface)
 {
 	static gboolean initialized = FALSE;
 	
-	iface->get_language = sc_language_manager_get_language_default;
+	iface->get_language_ids = sc_language_manager_get_language_ids_default;
 	iface->set_active = sc_language_manager_set_active_default;
 	iface->activate_document = sc_language_manager_activate_document_default;
 	iface->get_document_symbols = sc_language_manager_get_document_symbols_default;
@@ -103,11 +103,11 @@ sc_language_manager_get_type ()
 	return sc_language_manager_type_id;
 }
 
-const gchar *
-sc_language_manager_get_language (ScLanguageManager *lm)
+GSList*
+sc_language_manager_get_language_ids (ScLanguageManager *lm)
 {
 	g_return_val_if_fail (SC_IS_LANGUAGE_MANAGER (lm), NULL);	
-	return SC_LANGUAGE_MANAGER_GET_INTERFACE (lm)->get_language (lm);
+	return SC_LANGUAGE_MANAGER_GET_INTERFACE (lm)->get_language_ids (lm);
 }
 
 void

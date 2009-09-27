@@ -25,10 +25,14 @@
 
 #define SC_LM_C_GET_PRIVATE(object)(G_TYPE_INSTANCE_GET_PRIVATE((object), SC_TYPE_LM_C, ScLmCPrivate))
 
+
+#define LANGUAGES "text/x-c;text/x-csrc;text/x-c++hdr;text/x-chdr"
+
 struct _ScLmCPrivate
 {
 	GList *symbols;
 	GList *project_symbols;
+	GSList *language_ids;
 };
 
 static void sc_lm_c_iface_init (gpointer g_iface, gpointer iface_data);
@@ -38,6 +42,23 @@ G_DEFINE_TYPE_WITH_CODE (ScLmC,
 			 G_TYPE_OBJECT,
 			 G_IMPLEMENT_INTERFACE (SC_TYPE_LANGUAGE_MANAGER,
 			 			sc_lm_c_iface_init))
+
+static GSList*
+build_language_ids ()
+{
+	gchar **language_ids = g_strsplit (LANGUAGES, ";", 0);
+	GSList *list = NULL;
+	guint i;
+
+	for (i = 0; language_ids[i] != NULL; i++)
+	{
+		list = g_slist_append (list, language_ids[i]);
+	}
+	
+	g_free (language_ids);
+	
+	return list;
+}
 
 static void 
 clean_symbols (GList *symbols)
@@ -62,10 +83,11 @@ sc_lm_c_disable (ScLanguageManager *self)
 	
 }
 
-static const gchar *
-sc_lm_c_get_language_impl (ScLanguageManager *self)
+static GSList*
+sc_lm_c_get_language_ids_impl (ScLanguageManager *self)
 {
-	return "C";
+	/*TODO*/
+	return NULL;
 }
 
 static void
@@ -133,7 +155,7 @@ sc_lm_c_iface_init (gpointer g_iface,
 	ScLanguageManagerIface *iface = (ScLanguageManagerIface *)g_iface;
 	
 	/* Interface data getter implementations */
-	iface->get_language = sc_lm_c_get_language_impl;
+	iface->get_language_ids = sc_lm_c_get_language_ids_impl;
 	iface->set_active = sc_lm_c_set_active_impl;
 	iface->activate_document = sc_lm_c_activate_document_impl;
 	iface->get_document_symbols = sc_lm_c_get_document_symbols_impl;
@@ -147,6 +169,8 @@ sc_lm_c_finalize (GObject *object)
 	
 	clean_symbols (self->priv->symbols);
 	clean_symbols (self->priv->project_symbols);
+	
+	g_slist_free (self->priv->language_ids);
 
 	G_OBJECT_CLASS (sc_lm_c_parent_class)->finalize (object);
 }
@@ -167,6 +191,7 @@ sc_lm_c_init (ScLmC *self)
 	self->priv = SC_LM_C_GET_PRIVATE (self);
 	self->priv->symbols = NULL;
 	self->priv->project_symbols = NULL;
+	self->priv->language_ids = build_language_ids ();
 }
 
 ScLmC *
