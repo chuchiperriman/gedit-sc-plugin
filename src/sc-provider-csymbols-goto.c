@@ -122,16 +122,10 @@ sc_provider_csymbols_goto_match (GtkSourceCompletionProvider	*provider,
 	return TRUE;
 }
 
-static gboolean
-sc_provider_csymbols_goto_get_interactive (GtkSourceCompletionProvider *provider)
+static GtkSourceCompletionActivation
+sc_provider_csymbols_goto_get_activation (GtkSourceCompletionProvider *provider)
 {
-	return FALSE;
-}
-
-static gboolean
-sc_provider_csymbols_goto_get_default (GtkSourceCompletionProvider *provider)
-{
-	return FALSE;
+	return GTK_SOURCE_COMPLETION_ACTIVATION_NONE;
 }
 
 static gboolean
@@ -181,8 +175,7 @@ sc_provider_csymbols_goto_iface_init (GtkSourceCompletionProviderIface *iface)
 
 	iface->populate = sc_provider_csymbols_goto_populate;
 	iface->match = sc_provider_csymbols_goto_match;
-	iface->get_interactive = sc_provider_csymbols_goto_get_interactive;
-	iface->get_default = sc_provider_csymbols_goto_get_default;
+	iface->get_activation = sc_provider_csymbols_goto_get_activation;
 	iface->activate_proposal = sc_provider_csymbols_goto_activate_proposal;
 }
 

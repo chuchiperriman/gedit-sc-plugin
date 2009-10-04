@@ -70,6 +70,7 @@ static void
 sc_provider_project_csymbols_populate (GtkSourceCompletionProvider	*base,
 				       GtkSourceCompletionContext	*context)
 {
+	g_debug ("populating");
 	ScProviderProjectCsymbols *self = SC_PROVIDER_PROJECT_CSYMBOLS (base);
 	GList *symbols = NULL, *res = NULL, *l;
 	gchar *word;
@@ -79,7 +80,8 @@ sc_provider_project_csymbols_populate (GtkSourceCompletionProvider	*base,
 	
 	if (word)
 	{
-		if (gtk_source_completion_context_get_default (context) || g_utf8_strlen (word, -1) > 2)
+		if ((gtk_source_completion_context_get_activation (context) & GTK_SOURCE_COMPLETION_ACTIVATION_USER_REQUESTED) == GTK_SOURCE_COMPLETION_ACTIVATION_USER_REQUESTED
+		    || g_utf8_strlen (word, -1) > 2)
 		{
 			symbols = sc_language_manager_get_project_symbols (self->priv->lm);
 				
@@ -108,6 +110,7 @@ sc_provider_project_csymbols_populate (GtkSourceCompletionProvider	*base,
 						     base,
 						     res,
 						     TRUE);
+	g_debug ("end populating");
 	/*TODO We must free the proposals list ¿?*/		
 }
 

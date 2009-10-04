@@ -142,8 +142,9 @@ sc_lm_c_activate_document_impl (ScLanguageManager	*lm,
 	if (g_file_test (uri, G_FILE_TEST_EXISTS))
 	{
 		/*Loading document symbols*/
+		g_debug ("generating document symbols");
 		self->priv->symbols = sc_ctags_exec_get_symbols (CTAGS_EXEC_FILE, uri);
-
+		g_debug ("end generating document symbols");
 		/*Loading project symbols*/		
 		project_dir = sc_utils_get_project_dir (uri);
 		if (project_dir != NULL)
@@ -151,7 +152,9 @@ sc_lm_c_activate_document_impl (ScLanguageManager	*lm,
 			sctags = sc_ctags_build_project_sctags (project_dir, FALSE);
 			if (sctags != NULL)
 			{
+				g_debug ("generating project symbols");
 				self->priv->project_symbols = sc_ctags_get_symbols_from_sctags (sctags);
+				g_debug ("end generating project symbols");
 				g_free (sctags);
 			}
 			g_free (project_dir);

@@ -74,7 +74,8 @@ sc_provider_csymbols_populate (GtkSourceCompletionProvider	*base,
 	
 	if (word)
 	{
-		if (gtk_source_completion_context_get_default (context) || g_utf8_strlen (word, -1) > 2)
+		if ((gtk_source_completion_context_get_activation (context) & GTK_SOURCE_COMPLETION_ACTIVATION_USER_REQUESTED) == GTK_SOURCE_COMPLETION_ACTIVATION_USER_REQUESTED 
+		    || g_utf8_strlen (word, -1) > 2)
 		{
 
 			symbols = sc_language_manager_get_document_symbols (self->priv->lm);
@@ -145,7 +146,6 @@ sc_provider_csymbols_iface_init (GtkSourceCompletionProviderIface *iface)
 
 	iface->populate = sc_provider_csymbols_populate;
 	iface->match = sc_provider_csymbols_match;
-	//iface->get_start_iter = sc_provider_csymbols_get_start_iter;
 }
 
 static void 
