@@ -39,6 +39,12 @@ struct _ScProviderProjectCsymbolsPrivate
 	GdkPixbuf *provider_icon;
 	GeditDocument *document;
 	ScLanguageManager *lm;
+	GList *populate_iter;
+	GList *symbols;
+	guint idle_id;
+	guint cancel_id;
+	GtkSourceCompletionContext *context;
+	gchar *word;
 };
 
 G_DEFINE_TYPE_WITH_CODE (ScProviderProjectCsymbols,
@@ -67,51 +73,113 @@ sc_provider_project_csymbols_match (GtkSourceCompletionProvider	*provider,
 }
 
 static void
+population_finished (ScProviderProjectCsymbols *self)
+{
+	if (self->priv->idle_id != 0)
+	{
+		g_source_remove (self->priv->idle_id);
+		self->priv->idle_id = 0;
+	}
+	
+	if (self->priv->context != NULL)
+	{
+		if (self->priv->cancel_id)
+		{
+			g_signal_handler_disconnect (self->priv->context, 
+			                             self->priv->cancel_id);
+			self->priv->cancel_id = 0;
+		}
+	
+		g_object_unref (self->priv->context);
+		self->priv->context = NULL;
+	}
+	
+	self->priv->symbols = NULL;
+	if (self->priv->word)
+	{
+		g_free (self->priv->word);
+		self->priv->word = NULL;
+	}
+}
+
+static gboolean
+add_in_idle (ScProviderProjectCsymbols *self)
+{
+	guint idx = 0;
+	GList *ret = NULL;
+	gboolean finished;
+	
+	if (self->priv->populate_iter == NULL)
+		self->priv->populate_iter = self->priv->symbols;
+		
+	while (idx < 100 && 
+	       self->priv->populate_iter)
+	{
+		ScSymbol *s = (ScSymbol*)self->priv->populate_iter->data;
+		
+		if (self->priv->word == NULL ||
+		    (g_str_has_prefix (s->name, self->priv->word) && g_utf8_collate (s->name, self->priv->word) != 0))
+		{
+			GtkSourceCompletionProposal *proposal = sc_utils_symbol_to_proposal ((ScSymbol*)self->priv->populate_iter->data);
+			ret = g_list_prepend (ret, proposal);
+		}
+		
+		self->priv->populate_iter = g_list_next (self->priv->populate_iter);
+		++idx;
+	}
+	
+	ret = g_list_reverse (ret);
+	finished = self->priv->populate_iter == NULL;
+	
+	gtk_source_completion_context_add_proposals (self->priv->context,
+	                                             GTK_SOURCE_COMPLETION_PROVIDER (self),
+	                                             ret,
+	                                             finished);
+	
+	if (finished)
+	{
+		population_finished (self);
+	}
+
+	return !finished;
+}
+
+static void
 sc_provider_project_csymbols_populate (GtkSourceCompletionProvider	*base,
 				       GtkSourceCompletionContext	*context)
 {
-	g_debug ("populating");
 	ScProviderProjectCsymbols *self = SC_PROVIDER_PROJECT_CSYMBOLS (base);
-	GList *symbols = NULL, *res = NULL, *l;
-	gchar *word;
-	ScSymbol *s;
 	
-	word = ch_completion_get_word (GTK_SOURCE_BUFFER (self->priv->document));
+	self->priv->word = ch_completion_get_word (GTK_SOURCE_BUFFER (self->priv->document));
 	
-	if (word)
+	if (self->priv->word)
 	{
 		if ((gtk_source_completion_context_get_activation (context) & GTK_SOURCE_COMPLETION_ACTIVATION_USER_REQUESTED) == GTK_SOURCE_COMPLETION_ACTIVATION_USER_REQUESTED
-		    || g_utf8_strlen (word, -1) > 2)
+		    || g_utf8_strlen (self->priv->word, -1) > 2)
 		{
-			symbols = sc_language_manager_get_project_symbols (self->priv->lm);
-				
-			if (symbols)
-			{
-				for (l = symbols; l != NULL; l = g_list_next (l))
-				{
-					s = (ScSymbol*)l->data;
-					if (g_str_has_prefix (s->name, word) && g_utf8_collate (s->name, word) != 0)
-					{
-						res = g_list_append (res, s);
-					}
-				}
-			}
+			self->priv->symbols = sc_language_manager_get_project_symbols (self->priv->lm);
 		}
-		
-		g_free (word);
+		else
+		{
+			g_free (self->priv->word);
+			self->priv->word = NULL;
+		}
 	}
 	
-	if (res)
+	self->priv->cancel_id = 
+		g_signal_connect_swapped (context, 
+			                  "cancelled", 
+			                   G_CALLBACK (population_finished), 
+			                   self);
+
+	self->priv->context = g_object_ref (context);
+	
+	/* Do first right now */
+	if (add_in_idle (self))
 	{
-		res = sc_utils_symbols_to_proposals_without_dup (res);
+		self->priv->idle_id = g_idle_add ((GSourceFunc)add_in_idle,
+		                                  self);
 	}
-	
-	gtk_source_completion_context_add_proposals (context,
-						     base,
-						     res,
-						     TRUE);
-	g_debug ("end populating");
-	/*TODO We must free the proposals list ¿?*/		
 }
 
 static void 

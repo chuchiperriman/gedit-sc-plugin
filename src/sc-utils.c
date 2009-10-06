@@ -156,7 +156,7 @@ sc_utils_get_project_dir (const gchar *path)
 	return res;
 }
 
-GtkSourceCompletionItem*
+GtkSourceCompletionProposal*
 sc_utils_symbol_to_proposal (ScSymbol *s)
 {
 	GdkPixbuf *icon;
@@ -174,14 +174,14 @@ sc_utils_symbol_to_proposal (ScSymbol *s)
 	g_free (info);
 	g_object_unref (icon);
 
-	return prop;
+	return GTK_SOURCE_COMPLETION_PROPOSAL (prop);
 }
 
 GList*
 sc_utils_symbols_to_proposals (GList *symbols)
 {
 	GList *list = NULL, *l;
-	GtkSourceCompletionItem *prop;
+	GtkSourceCompletionProposal *prop;
 	ScSymbol *s;
 
 	if (symbols == NULL)
@@ -206,7 +206,7 @@ sc_utils_symbols_to_proposals_without_dup (GList *symbols)
 {
 	GHashTable *table;
 	GList *list = NULL, *l;
-	GtkSourceCompletionItem *prop;
+	GtkSourceCompletionProposal *prop;
 	ScSymbol *s;
 	gpointer *temp;
 

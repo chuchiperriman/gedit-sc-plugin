@@ -23,6 +23,7 @@
 
 #include "sc-symbol.h"
 #include <gtk/gtk.h>
+#include <gtksourceview/gtksourcecompletionproposal.h>
 
 G_BEGIN_DECLS
 
@@ -33,6 +34,8 @@ GdkPixbuf	*sc_utils_get_symbol_pixbuf			(gchar *type);
 gchar           *sc_utils_get_project_dir			(const gchar *path);
 GList		*sc_utils_symbols_to_proposals			(GList *symbols);
 GList		*sc_utils_symbols_to_proposals_without_dup	(GList *symbols);
+GtkSourceCompletionProposal*
+		 sc_utils_symbol_to_proposal			(ScSymbol *s);
 
 G_END_DECLS
 
