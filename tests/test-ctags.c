@@ -31,6 +31,67 @@
 #include "../src/sc-ctags.h"
 #include "../src/sc-utils.h"
 
+static const gchar* texts[]= {
+	"    siiii if (a == b) {",
+	"        siiii if (a == b) {    ",
+	"siii if (a == b)\n{",
+	"if (a == b) {   sisisi; ",
+	"if (a == b) {   nooooo;} ",
+	"if (a == b) {   siiii;}{ ",
+	NULL
+};
+
+static gchar*
+get_indent (const gchar *string)
+{
+	/* Print all uppercase-only words. */
+	GRegex *regex;
+	GMatchInfo *match_info;
+	gchar *word = NULL;
+
+	regex = g_regex_new ("^\\s*", 0, 0, NULL);
+	g_regex_match (regex, string, 0, &match_info);
+	while (g_match_info_matches (match_info))
+	{
+		word = g_match_info_fetch (match_info, 0);
+		break;
+	}
+	g_match_info_free (match_info);
+	g_regex_unref (regex);
+
+	return word;
+}
+
+static void
+regexp_test ()
+{
+	gint i;
+	gchar *indent;
+	const gchar *text = texts[0];
+	for (i = 1; text != NULL; i++)
+	{
+		g_debug ("new line");
+		if (g_regex_match_simple ("{\\.*[^}]*\\.*$",
+					  text,
+					  0,
+					  0))
+		{
+			printf ("%s\n", text);
+			indent = get_indent (text);
+			if (indent)
+			{
+				printf ("%s    print();\n", indent);
+				g_free (indent);
+			}
+		}
+		else
+		{
+			printf ("%s (NOT)\n", text);
+		}
+		text = texts[i];
+	}
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -79,6 +140,8 @@ main (int argc, char *argv[])
 	g_debug ("Project dir: %s", pro);
 
 	g_free(pro);
+
+	regexp_test ();
 	
 	return 0;
 }
