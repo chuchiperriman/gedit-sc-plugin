@@ -48,7 +48,7 @@ AM_GLIB_GNU_GETTEXT
 # ================================================================
 
 PKG_CHECK_MODULES(GEDIT, [
-	gtksourceview-2.0 >= 2.6.0
+	gtksourceview-2.0 >= 2.10.0
 	gedit-2.20 >= 2.20.0
 ])
 GEDIT_LIBS="${GEDIT_LIBS}"

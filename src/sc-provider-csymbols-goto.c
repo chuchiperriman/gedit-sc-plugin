@@ -48,10 +48,10 @@ G_DEFINE_TYPE_WITH_CODE (ScProviderCsymbolsGoto,
 			 G_IMPLEMENT_INTERFACE (GTK_TYPE_SOURCE_COMPLETION_PROVIDER,
 				 		sc_provider_csymbols_goto_iface_init))
 
-static const gchar * 
+static gchar * 
 sc_provider_csymbols_goto_get_name (GtkSourceCompletionProvider *self)
 {
-	return _("File Symbols Goto");
+	return g_strdup (_("File Symbols Goto"));
 }
 
 static GdkPixbuf * 

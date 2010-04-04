@@ -47,10 +47,10 @@ G_DEFINE_TYPE_WITH_CODE (ScProviderCsymbols,
 			 G_IMPLEMENT_INTERFACE (GTK_TYPE_SOURCE_COMPLETION_PROVIDER,
 				 		sc_provider_csymbols_iface_init))
 
-static const gchar * 
+static gchar * 
 sc_provider_csymbols_get_name (GtkSourceCompletionProvider *self)
 {
-	return _("File Symbols");
+	return g_strdup (_("File Symbols"));
 }
 
 static GdkPixbuf * 
